@@ -620,12 +620,31 @@ header, .context-menu, .megamenu-content, footer{
         <a href='https://inhyeokchoi48.github.io/teaching'><span>Teaching</span></a><span>  /  </span>
         <a href='https://inhyeokchoi48.github.io/miscellany'><span>Miscellany</span></a><span>  /  </span>
         <a href='https://inhyeokchoi48.github.io/kor/research'><span>한국어 버전</span></a></h4>
- <hr /><h4 id='preprints-and-publications'><span>Preprints and Publications (Click each title for details)</span></h4>
- <ul><li><p><span onclick="pAClick()">Pseudo-Anosovs are exponentially generic in mapping class groups</span>
+ <hr /><h4 id='preprints-and-publications'><span>Preprints and Publications (Click each title for brief summary)</span></h4>
+ <ul><li><p><span onclick="randomSullivanClick()">Random walks on mapping class groups</span>
+        <span>joint with </span><a href='https://sites.google.com/site/hrbaik85/'><span>Hyungryul Baik</span></a><span> (2021)</span></p></li>
+
+<div id="randomSullivan" style="display:none">
+ <ul><li><p>Survey paper on random walks on mapping class groups.</p></li></ul>
+</div>
+
+
+<script>
+function randomSullivanClick() {
+  var x = document.getElementById("randomSullivan");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
+     <li><p><span onclick="pAClick()">Pseudo-Anosovs are exponentially generic in mapping class groups</span>
         <a href='https://www.dropbox.com/s/epzuixwf7kv5hko/pA_public.pdf?dl=0'><span>link</span></a><span> (2021)</span></p></li>
 
 <div id="pA" style="display:none">
- <ul><li><p>Abstract: Fixing a finite generating set $S$, let us endow the mapping class group of a closed hyperbolic surface with the word metric for $S$. We discuss the following question: does the proportion of non-pseudo-Anosov mapping classes in the ball of radius $R$ decrease to 0 as $R$ increases? We show that any finite subset $S'$ of the mapping class group is contained in a finite generating set $S$ such that this proportion decreases exponentially. Our strategy applies to weakly hyperbolic groups and does not refer to the automatic structure of the group.
+ <ul><li><p>It is shown that for suitable finite generating sets, loxodromics in weakly hyperbolic spaces or mapping class groups are exponentially generic; i.e. their proportion inside the radius $R$ ball in the word metric decreases exponentially. This can be regarded as a sequel of Baik-Choi-Kim (2021) and Choi (2021), and does not rely on the automatic structure of the group.
 </p></li></ul>
 </div>
 
@@ -644,8 +663,8 @@ function pAClick() {
      <li><p><span onclick="cltClick()">Central limit theorem and geodesic tracking on hyperbolic spaces and Teichmüller spaces </span>
         <a href='https://arxiv.org/abs/2106.13017'><span>arXiv:2106.13017</span></a><span> (2021)</span></p></li>
      <div id="clt" style="display:none">
-         <ul><li><a href='https://mathsci.kaist.ac.kr/~inhyeokchoi/clt_kor.pdf'><span>Korean version</span></a><span>: this is not intended to be a word-to-word translation. It may present more details that are not available in Korean elsewhere.</span></li></ul>
-         <ul><li><p>Abstract: We study random walks on the isometry group of a Gromov hyperbolic space or Teichmüller space. We prove that the translation lengths of random isometries satisfy a central limit theorem if and only if the random walk has finite second moment. While doing this, we recover the central limit theorem of Benoist and Quint for the displacement of a reference point and establish its converse. Also discussed are the corresponding laws of the iterated logarithm. Finally, we prove sublinear geodesic tracking by random walks with finite (1/2)-th moment and logarithmic tracking by random walks with finite exponential moment.</p></li></ul>
+         <ul><li>One purpose of this paper is to integrate the notion of pivots in Gouëzel (2021) and Baik-Choi-Kim (2021). This has a number of consequences including geodesic tracking, control on the discrepancy between displacements and translation lengths, CLT and its converse, and LIL.</li>
+         <li><a href='https://mathsci.kaist.ac.kr/~inhyeokchoi/clt_kor.pdf'><span>Korean version</span></a><span>: this is not intended to be a word-to-word translation. It may present more details that are not available in Korean elsewhere.</span></li></ul>
      </div>
 
     <script>
@@ -661,8 +680,7 @@ function pAClick() {
      <li><p><span onclick="linearClick()">Linear growth of translation lengths of random isometries on Gromov hyperbolic spaces and Teichmüller spaces </span>
         <span>joint with </span><a href='https://sites.google.com/site/hrbaik85/'><span>Hyungryul Baik</span></a><span> and </span><a href='https://gauss.math.yale.edu/~dk929/'><span>Dongryul M. Kim</span></a><span>, </span><a href='https://arxiv.org/abs/2103.13616'><span>arXiv:2103.13616</span></a><span> (2021)</span></p></li>
      <div id="linear" style="display:none">
-         <ul><li><p>Abstract: We investigate the translation lengths of group elements that arise in random walks on weakly hyperbolic groups. In particular, without any moment condition, we prove that non-elementary random walks exhibit at least linear growth of translation lengths. As a corollary, almost every random walk on mapping class groups eventually becomes pseudo-Anosov and almost every random walk on Out(Fn) eventually becomes fully irreducible. If the underlying measure further has finite first moment, then the growth rate of translation lengths is equal to the drift, the escape rate of the random walk.
-     We then apply our technique to investigate the random walks induced by the action of mapping class groups on Teichmüller spaces. In particular, we prove the spectral theorem under finite first moment condition, generalizing a result of Dahmani and Horbez.</p></li></ul>
+         <ul><li><p>The main purpose of this paper is to improve the moment condition of Dahmani-Horbez's spectral theorem (aka SLLN for translation lengths). Namely, we present an SLLN under finite first moment condition and another version of SLLN (at least linear growth) without any moment condition. The key idea is pivoting from undesirable trajectories to desirable trajectories, by designing so-called "pivots".</p></li></ul>
      </div>
 
     <script>
@@ -737,6 +755,6 @@ function pAClick() {
         <li><span>2021.02.03. Simple length spectra of a generic hyperbolic surface determine its isometry class. Virtual Seminar on Geometry and Topology.</span></li>
         <li><span>2021.01.26. Rigidity of length identities of hyperbolic surfaces. The 16th East Asian Conference on Geometric Topology.</span></li>
         <li><span>2020.10.30: Random walks and mapping class groups. 10-minute lightning talk at Geometric Group Theory in East Asia. Online Seminar.</span></li></ul>
-    <hr /><p><span>Last update: 2021.09.03.</span></p><p>&nbsp;</p></div></div>
+    <hr /><p><span>Last update: 2021.10.11.</span></p><p>&nbsp;</p></div></div>
 </body>
 </html>
