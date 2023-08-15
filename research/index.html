@@ -681,11 +681,30 @@ function contracting4Click() {
 }
 </script>
 
+     <li><p><span onclick="superdivergentClick()">A quasi-isometry invariant CLT</span>
+         <span>joint with </span><a href='http://individual.utoronto.ca/kunalc/'><span>Kunal Chawla</span></a><span>, </span><a href='https://www.math.toronto.edu/vivianhe/'><span>Vivian He</span></a><span> and </span><a href='https://www.math.toronto.edu/~rafi/'><span>Kasra Rafi</span></a><span>, in preparation (2023)</span></p></li>
+<div id="superdivergent" style="display:none">
+ <ul><li><p>Now there is a rich theory for random walks on groups, but this theory is not quasi-isometry invariant in general. Nonetheless, a certain group-theoretic and QI-invariant property might restrict the geometry of the group and leads to a QI-invariant statement for random walks on them. Recently, Goldsborough and Sisto provided the first result in this direction, showing that a group G containing a super-divergent element that also acts as a loxodromic on a hyperbolic space falls into this scheme. Namely, not only we have a CLT on G but CLTs on H whenever H is quasi-isometric to G. In this paper, we lift the condition that G admits an isometric action on a Gromov hyperbolic space. Namely, we show that possessing a super-divergent quasigeodesic is a QI-invariant property which guarantees the CLT.
+ </li></ul>
+</div>
 
-<li><p><span onclick="contractingHypClick()">Genericity of contracting geodesics in groups</span>
-    <span>joint with </span><a href='http://individual.utoronto.ca/kunalc/'><span>Kunal Chawla</span></a><span> and </span><a href='http://www.math.toronto.edu/tiozzo/'><span>Giulio Tiozzo</span></a><span>, </span><a href='https://arxiv.org/abs/2308.01877'><span>arXiv:2308.01877</span></a><span> (2023)</span></p></li>
+
+<script>
+function superdivergentClick() {
+  var x = document.getElementById("superdivergent");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
+
+    <li><p><span onclick="contractingHypClick()">Genericity of contracting geodesics in groups</span>
+        <span>joint with </span><a href='http://individual.utoronto.ca/kunalc/'><span>Kunal Chawla</span></a><span> and </span><a href='http://www.math.toronto.edu/tiozzo/'><span>Giulio Tiozzo</span></a><span>, </span><a href='https://arxiv.org/abs/2308.01877'><span>arXiv:2308.01877</span></a><span> (2023)</span></p></li>
 <div id="contractingHyp" style="display:none">
- <ul><li><p> This paper deals with a cute dichotomy connecting the geometry of a finitely generated group G and the dyanmics of its elements. Namely, excluding elementary cases, G is hyperbolic (not hyperbolic, resp.) if and only if its generic elements exhibit strongly contracting dynamics. This is proved based on Wenyuan Yang's theory for counting problems on groups containing contracting elements. Also discussed is the generalization of Sullivan's logarithmic law.
+ <ul><li><p>This paper deals with a cute dichotomy connecting the geometry of a finitely generated group G and the dyanmics of its elements. Namely, excluding elementary cases, G is hyperbolic (not hyperbolic, resp.) if and only if its generic elements exhibit strongly contracting dynamics. This is proved based on Wenyuan Yang's theory for counting problems on groups containing contracting elements. Also discussed is the generalization of Sullivan's logarithmic law.
  </li></ul>
 </div>
 
@@ -783,7 +802,7 @@ function pAClick() {
 
      <li><p><span onclick="cltClick()">Central limit theorem and geodesic tracking on hyperbolic spaces and Teichmüller spaces </span>
         <a href='https://arxiv.org/abs/2106.13017'><span>arXiv:2106.13017</span></a><span> (2021)</span>
-        <span>To appear in <em>Advances in Mathematics</em></span></p></li>
+        <span><em>Advances in Mathematics</em>, Volume 431 (2023), 109236. </span><a href="https://www.sciencedirect.com/science/article/pii/S0001870823003791?dgcid=author"><span>Journal</span></a></p></li>
      <div id="clt" style="display:none">
          <ul><li>The purpose of this paper is to integrate the notion of pivots in Gouëzel (2021) and Baik-Choi-Kim (2021). This has a number of consequences including geodesic tracking, control on the discrepancy between displacements and translation lengths, CLT and its converse, and LIL.</li>
          <li><a href='https://inhyeokchoi48.github.io/files/clt_kor.pdf'><span>Korean version</span></a><span>: this is not intended to be a word-to-word translation. It may present more details that are not available in Korean elsewhere.</span></li></ul>
@@ -976,6 +995,6 @@ function randomSullivanClick() {
         <li><span>2019.12.18-2019.12.30. Short-term visit, National University of Singapore, Singapore. (Host: Prof. Ser Peow Tan)</span></li>
         <li><span>2019.11.04-2019.11.08. </span><a href='https://mtriestino.perso.math.cnrs.fr/3mfd.html'><span>Low dimensional actions of 3-manifold groups</span></a><span>: Workshop at Université de Bourgogne, Dijon, France.  </span></li>
         <li><span>2018.12.18-2019.02.19. Student exchange program at Tokyo Tech, Tokyo, Japan. (Host: Prof. Tomoki Kawahira)</span></li></ul>
-    <hr /><p><span>Last update: 2023.07.20.</span></p><p>&nbsp;</p></div></div>
+    <hr /><p><span>Last update: 2023.08.15.</span></p><p>&nbsp;</p></div></div>
 </body>
 </html>
