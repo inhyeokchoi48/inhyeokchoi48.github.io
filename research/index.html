@@ -63,6 +63,26 @@ function contracting4Click() {
 }
 </script>
 
+
+<li><p><span onclick="confinedClick()">Confined subgroups in groups with contracting elements</span><br>
+     <a href='https://arxiv.org/abs/2405.09070'><span>arXiv:2405.09070</span></a><span> (2024)</span></li>
+<div id="confined" style="display:none">
+ <ul><li><p>In this paper, we study the dynamics of confined subgroups of relatively hyperbolic groups, CAT(0) groups and mapping class groups on the single horofunction boundary (as opposed to the double action). One main result is the criteria for conservative and completely dissipative actions on the boundary, and another main result is the inequality between the growth rate of confined subgroups and the ambient group. This paper is motivated by the study of free groups by Grigorchuk-Kaimanovich-Nagnibeda and confined subgroups of rank-1 Lie groups by Gekhtman-Levit.
+ </li></ul>
+</div>
+
+
+<script>
+function confinedClick() {
+  var x = document.getElementById("confined");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
      <li><p><span onclick="contracting5Click()">Contracting isometries and differentiability of the escape rate.</span><br>
      <a href='https://arxiv.org/abs/2403.09992'><span>arXiv:2403.09992</span></a><span> (2024)</span></li>
 
@@ -364,7 +384,7 @@ function randomSullivanClick() {
 
     <hr />
     <h4><span>Recent/Upcoming Talks</span></h4>
-    <ul><li><span>2023.05.13. TBA. Workshop: Dynamics of group actions and random walks on groups. Fields Institute, Toronto, ON Canada</span></li>
+    <ul><li><span>2023.05.13. Continuity of escape rate of random walks on CAT(0) spaces. Workshop: Dynamics of group actions and random walks on groups. Fields Institute, Toronto, ON Canada</span></li>
         <li><span>2023.05.03. Hyperbolicity of geodesics, counting and random walks. </span><a href="https://sites.google.com/view/rivggt24/home"><span>Riverside GGT Workshop</span></a><span>. UC Riverside, California, USA</span></li>
         <li><span>2024.04.21. Confined subgroups and their growth. Alfréd Rényi Institute. Budapest, Hungary.</span></li>
         <li><span>2024.04.08. Genericity of pseudo-Anosov mapping classes. </span><a href="https://sites.google.com/view/yggt2024/home?authuser=0"><span>Young Geometric Group Theory XII</span></a><span>. Bristol, UK</span></li>
@@ -421,6 +441,6 @@ function randomSullivanClick() {
         <li><span>2023.05.15-2023.05.19. </span><a href='https://icerm.brown.edu/topical_workshops/tw-23-drahg/'><span>Dynamics, Rigidity and Arithmetic in Hyperbolic Geometry</span></a><span>: Workshop at ICERM, Providence, RI, USA.</span></li>
         -->
     </ul>
-    <hr /><p><span>Last update: 2024.03.25.</span></p><p>&nbsp;</p></div></div>
+    <hr /><p><span>Last update: 2024.05.17.</span></p><p>&nbsp;</p></div></div>
 </body>
 </html>

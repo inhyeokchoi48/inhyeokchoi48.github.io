@@ -66,6 +66,26 @@ function contracting4Click() {
 }
 </script>
 
+
+<li><p><span onclick="confinedClick()">Confined subgroups in groups with contracting elements</span><br>
+     <a href='https://arxiv.org/abs/2405.09070'><span>arXiv:2405.09070</span></a><span> (2024)</span></li>
+<div id="confined" style="display:none">
+ <ul><li><p>이 논문에서는 상대적인 쌍곡군, CAT(0) 군 및 사상류군의 국한된 부분군(confined subgroup)이 horofunction 가장자리에 (이중 작용이 아닌) 단일 작용을 하는 상황에서의 동역학을 다룬다. 주요 결과 중 하나로 가장자리 작용의 보존성(conservativity) 및 완전 분산성(complete dissipativity)을 이끌어내는 기준을 제시했으며, 또다른 결과로 국한된 부분군 및 전체 군의 성장 지수(growth rate) 사이에 성립하는 부등식을 증명했다. 이 논문은  자유군에 대한 Grigorchuk-Kaimanovich-Nagnibeda의 분석 및 차수 1짜리 리 군들의 국한된 부분군에 대한 Gekhtman-Levit의 이론으로부터 많은 영향을 받았다.
+ </li></ul>
+</div>
+
+
+<script>
+function confinedClick() {
+  var x = document.getElementById("confined");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
 <li><p><span onclick="contracting5Click()">Random walks and contracting elements V: Differentiability of the escape rate .</span><br>
      <a href='https://arxiv.org/abs/2403.09992'><span>arXiv:2403.09992</span></a><span> (2024)</span></li>
 
@@ -364,7 +384,7 @@ function randomSullivanClick() {
 
 
     <hr /><h4><span>최근 발표 및 예정된 발표</span></h4>
-    <ul><li><span>2023.05.13. 제목 미정. Workshop: Dynamics of group actions and random walks on groups. 캐나다 온타리오의 필즈 연구소.</span></li>
+    <ul><li><span>2023.05.13. Continuity of escape rate of random walks on CAT(0) spaces. Workshop: Dynamics of group actions and random walks on groups. 캐나다 온타리오의 필즈 연구소.</span></li>
         <li><span>2023.05.03. Hyperbolicity of geodesics, counting and random walks. </span><a href="https://sites.google.com/view/rivggt24/home"><span>Riverside GGT Workshop</span></a><span>. 미국 캘리포니아 대학 Riverside 캠퍼스.</span></li>
         <li><span>2024.04.21. Confined subgroups and their growth. 헝가리 부다페스트의 Alfréd Rényi Institute.</span></li>
         <li><span>2024.04.08. Genericity of pseudo-Anosov mapping classes. </span><a href="https://sites.google.com/view/yggt2024/home?authuser=0"><span>Young Geometric Group Theory XII</span></a><span>. 영국 브리스톨 대학.</span></li>
@@ -427,6 +447,6 @@ function randomSullivanClick() {
         <li><span>2018.12.18-2019.02.19. 일본 동경공업대학(東京工業大学) 학생 교환 프로그램 참가 (Host: Prof. Tomoki Kawahira)</span></li>
         -->
     </ul>
-    <hr /><p><span>마지막 수정: 2024.03.25.</span></p><p>&nbsp;</p></div></div>
+    <hr /><p><span>마지막 수정: 2024.05.18.</span></p><p>&nbsp;</p></div></div>
 </body>
 </html>
