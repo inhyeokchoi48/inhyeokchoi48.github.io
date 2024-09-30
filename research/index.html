@@ -24,7 +24,8 @@ MathJax.Hub.Config({
     <h4><a href='https://inhyeokchoi48.github.io/'><span>Home</span></a><span>  /  </span>
         <a href='https://inhyeokchoi48.github.io/files/cv_eng.pdf'><span>CV</span></a><span>  /  </span>
         <a href='https://inhyeokchoi48.github.io/research'><span>Research</span></a><span>  /  </span>
-        <a href='https://inhyeokchoi48.github.io/teaching'><span>Teaching</span></a><span>  /  </span>
+        <a href='https://inhyeokchoi48.github.io/teaching'><span>Teaching</span></a><span> /  </span>
+        <a href='https://inhyeokchoi48.github.io/miscellany'><span>Miscellany</span></a><span>  /  </span>
         <a href='https://inhyeokchoi48.github.io/kor/research'><span>한국어 버전</span></a></h4>
  <hr /><h4><span>Research papers for publication (Click each title for a brief summary)</span></h4>
  <ol reversed ><li><p><span onclick="contracting6Click()">Random walks and contracting elements VI: Random 3-manifolds (In preparation)</span></li>
@@ -63,11 +64,28 @@ function contracting4Click() {
 }
 </script>
 
+<li><p style="color:grey;"><span onclick="LipConjClick()">Smoothing countable group actions on metrizable spaces (with Sang-hyun Kim, to be available soon)</span></li>
+<div id="LipConj" style="display:none">
+    <ul><li><p>Building upon U. Hamenstädt's recent method, we discuss smoothability of actions of countable groups and locally compact groups on a metric space.</p>
+ </li></ul>
+</div>
+
+
+<script>
+function LipConjClick() {
+  var x = document.getElementById("LipConj");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
 
 <li><p><span onclick="pAWeakClick()">Counting pseudo-Anosovs as weakly contracting isometries</span><br>
-    <a href='https://arxiv.org/abs/2408.00603'><span>arXiv:2408.00603</span></a><span> (2024)</span></li>
+    <a href='https://arxiv.org/abs/2408.00603'><span>arXiv:2408.00603</span></a><span> (2024)</span></p></li>
 <div id="pAWeak" style="display:none">
- <ul><li><p>We give a complete answer to the question dealt with in Item 7. That means, we show that pseudo-Anosovs are generic in every Cayley graph of mapping class groups. Analogous results are discussed for HHGs, CAT(0) groups, groups acting geometrically with strongly contracting isometries, braid groups, etc. This gives a version of quasi-isometry invariant theory of counting group elements in groups.
+    <ul><li><p>We give a complete answer to the question dealt with in Item 7. That means, we show that pseudo-Anosovs are generic in every Cayley graph of mapping class groups. Analogous results are discussed for HHGs, CAT(0) groups, groups acting geometrically with strongly contracting isometries, braid groups, etc. This gives a version of quasi-isometry invariant theory of counting group elements in groups.</p>
  </li></ul>
 </div>
 
@@ -84,10 +102,10 @@ function pAWeakClick() {
 </script>
 
 <li><p><span onclick="confinedClick()">Confined subgroups in groups with contracting elements</span><br>
-    <span>with </span><a href='https://sites.google.com/site/ilyagekhtman/'><span>Ilya Gekhtman</span></a><span>, </span><a href='http://faculty.bicmr.pku.edu.cn/~wyang/'><span>Wenyuan Yang</span></a><span> and </span><a href='https://mathweb.ucsd.edu/~tiz161/'><span>Tianyi Zheng</span></a><span>, </span><a href='https://arxiv.org/abs/2405.09070'><span>arXiv:2405.09070</span></a><span> (2024)</span></li>
+    <span>with </span><a href='https://sites.google.com/site/ilyagekhtman/'><span>Ilya Gekhtman</span></a><span>, </span><a href='http://faculty.bicmr.pku.edu.cn/~wyang/'><span>Wenyuan Yang</span></a><span> and </span><a href='https://mathweb.ucsd.edu/~tiz161/'><span>Tianyi Zheng</span></a><span>, </span><a href='https://arxiv.org/abs/2405.09070'><span>arXiv:2405.09070</span></a><span> (2024)</span></p></li>
 <div id="confined" style="display:none">
  <ul><li><p>We study the dynamics of confined subgroups of relatively hyperbolic groups, CAT(0) groups and mapping class groups on the single horofunction boundary (as opposed to the double action). One main result is the criteria for conservative and completely dissipative actions on the boundary, and another main result is the inequality between the growth rate of confined subgroups and the ambient group. This paper is motivated by the study of free groups by Grigorchuk-Kaimanovich-Nagnibeda and confined subgroups of rank-1 Lie groups by Gekhtman-Levit.
- </li></ul>
+ </p> </li></ul>
 </div>
 
 
@@ -184,7 +202,7 @@ function contracting3Click() {
 </script>
 
      <li><p><span onclick="contracting2Click()">Random walks and contracting elements II: Translation lengths and quasi-isometric embedding</span><br>
-         <a href='https://arxiv.org/abs/2212.12119'><span>arXiv:2212.12119</span></a><span> (2022), to appear in </span><em><span>Groups, Geometry, and Dynamics.</span></em><span></li>
+         <a href='https://arxiv.org/abs/2212.12119'><span>arXiv:2212.12119</span></a><span> (2022), to appear in </span><em><span>Groups, Geometry, and Dynamics.</span></em></span></p></li>
 
 <div id="contracting2" style="display:none">
  <ul><li><p>This is the second in a series of papers concerning random walks and contracting elements. We discuss the genericity of contracting elements and the discrepancy between the displacement and the translation length of a random isometry. We then consider the qi-embedding of a random subgroup into the space, which was proven for weakly hyperbolic groups by Taylor and Tiozzo (based on the theory of Maher and Tiozzo). We also investigate the same phenomenon for counting problems. As a byproduct, we also finish the proof of the converse of CLT, which seems new for CAT(0) spaces.
@@ -414,7 +432,6 @@ function randomSullivanClick() {
             <li><span>2025.05.??. TBA, University of Tennessee, Knoxville, TN, USA.</span></li>
             <li><span>2025.02.14. TBA, SUNY at Buffalo Geometry & Topology Seminar. NY, USA.</span></li>
             <li><span>2024.10.22. Genericity of pseudo-Anosovs and quasi-isometries. CUNY Geometry & Topology Seminar. NY, USA.</span></li>
-            <li><span>2024.10.18. Genericity of pseudo-Anosovs and quasi-isometries. Geometric Group Theory Seminar, Harbin Institute of Technology (Online).</span></li>
             <li><span>2024.10.15. Genericity of pseudo-Anosovs and quasi-isometries. Geometry & Topology Seminar, Yale University. CT, USA.</span></li>
             <li><span>2024.10.14. Growth rate of confined subgroups of a discrete group. Group Action and Dynamics Seminar, Yale University. CT, USA.</span></li>
 </ul>
