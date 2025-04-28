@@ -32,6 +32,27 @@ MathJax.Hub.Config({
 
  <ol reversed >
 
+     <li><p><span onclick="acylClick()">Acylindrically hyperbolic groups and counting problems</span><br>
+    <a href='https://inhyeokchoi48.github.io/files/acyl.pdf'><span>초안</span></a><span>, Apr 28, 2025 업데이트.</span><br>
+<div id="acyl" style="display:none">
+    <ul><li><p>15번 논문을 한층 더 일반화한 것으로, 비원통적이게 쌍곡적인(acylindrically hyperbolic) 군 안에서 Morse 원소가 흔하며 Morse하지 않은 원소는 흔하지 않음을 증명한다. 여기서 비원통적이게 쌍곡적인 군이라는 전제는 유한 차수 자유군의 외자기동형군(outer automorphism group)을 공부하기 위한 설정이라고 볼 수도 있다.</p>
+ </li></ul>
+</div>
+
+
+<script>
+function acylClick() {
+  var x = document.getElementById("acyl");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
+
+
          <li><p><span onclick="circleTitsClick()">원의 위상동형사상 군의 자유 부분군과 Tits 대안</span><br>
          <a href='https://inhyeokchoi48.github.io/files/S1Tits_250301.pdf'><span>초안</span></a><span>, 2025년 3월 1일 버전 </span></p></li>
          <span>일부 영문 번역: </span><a href="https://arxiv.org/abs/2504.02788"><span>arxiv:2504.02788</span></a> (2025)</span></p></li>
