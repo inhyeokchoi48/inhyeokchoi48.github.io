@@ -33,6 +33,25 @@ MathJax.Hub.Config({
  <ol reversed>
 
 
+<li><p><span onclick="PercolationClick()">Percolation on acylindrically hyperbolic groups (미완)</span><br>
+    <span></span><a href="https://www.seodonggyun.com"><span>서동균 박사님</span></a><span>과 공저</span></p></li>
+<div id="Percolation" style="display:none">
+    <ul><li><p>이 논문에서는 비원통적이게 쌍곡적인(acylindrically hyperbolic) 군의 Cayley 그래프 위에서의 Bernoulli 연결 삼투 현상에 대해 공부한다. 주요 결과는 $p_{c} < p_{u}$라는 부등식인데, 이를 알기 쉽게 설명하자면 다음과 같다. 비원통적이게 쌍곡적인 군의 임의의 Cayley 그래프마다 어떤 값 $p$가 존재하는데, Cayley 그래프의 각 변을 확률 $p$로 독립적으로 제거하면, 무한 개의 무한한 연결성분이 거의 확실하게 나타난다. 이는 Hutchcroft가 Gromov 쌍곡적인 그래프 위에서 관찰한 결과를 확장하는 것이다.</p>
+ </li></ul>
+</div>
+
+
+<script>
+function PercolationClick() {
+  var x = document.getElementById("Percolation");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
 
 <li><p><span onclick="WPDClick()">Metric weak proper discontinuity for pseudo-Anosov maps</span><br>
     <a href='http://arxiv.org/abs/2506.21214'><span>arXiv:2506.21214</span></a><span> (2025)</span></p></li>
@@ -464,12 +483,13 @@ function randomSullivanClick() {
     <ul><li><h5><span>예정된 발표</span></h5></li>
         <ul>
 
-            <li><span>2026.03.23. TBA. University of Warwick, UK.</span></li>
-            <li><span>2025.10.13. TBA. KIAS, South Korea.</span></li>
-            <li><span>2025.09.22. 제목 미정. Autumn School on “Probability and Dynamics on Groups” 독일 뮌스터 대학교.</span></li>
-            <li><span>2025.09.17. 제목 미정. Groups, Dynamics and Surfaces in Paris. 프랑스 파리 소르본 대학교의 IMJ-PRG.</span></li>
-            <li><span>2025.08.25. TBA. KIAS, South Korea.</span></li>
-            <li><span>2025.08.18. 제목 미정. Algebraic and analytic methods in group theory in Warsaw, 폴란드 바르샤바의 IMPAN.</span></li>
+            <li><span>2026.03.23. 제목 미정, 영국 워릭 대학교.</span></li>
+            <li><span>2025.10.13. 제목 미정, 고등과학원. </span></li>
+            <li><span>2025.09.22. 제목 미정, </span><a href="https://www.uni-muenster.de/MathematicsMuenster/events/2025/probdyn-on-groups.shtml"><span>Autumn School on “Probability and Dynamics on Groups”</span></a><span>, 독일 뮌스터 대학교.</span></li>
+            <li><span>2025.09.17. 제목 미정, </span><a href="https://sites.google.com/view/gds-paris/home"><span>Groups, Dynamics and Surfaces in Paris.</span></a><span> 프랑스 파리 소르본 대학교의 IMJ-PRG.</span></li>
+            <li><span>2025.08.25. Many infinite clusters from percolations on many groups. </span><a href="https://sites.google.com/view/kias-kaist-workshop"><span>KIAS-KAIST Workshop on current mathematical challenges</span></a> 고등과학원.</span></li>
+            <li><span>2025.08.18. Metric WPD of pseudo-Anosov maps and quasimorphisms. </span><a href="https://sites.google.com/impan.pl/aamgt"><span>Algebraic and analytic methods in group theory in Warsaw</span></a><span>, 폴란드 바르샤바의 IMPAN.</span></li>
+            <li><span>2025.08.06. Dynamics of semigroups of circle homeomorphisms. </span><a href="https://sites.google.com/view/ggdfestival2025"><span>One-day Festival of Group actions, Geometry and Dynamics</span></a><span>, 고등과학원.</span></li>
             <li><span>2025.06.16. Genericity problem in groups with non-positive curvature. Conference on Geometric Group Theory and Related Topics, 중국 베이징의 북경대학교 BICMR.</span></li>
             <li><span>2025.05.19. Counting pseudo-Anosovs and fully irreducibles. Recent Development in Geometric Group Theory, 미국 테네시 녹스빌의 테네시 대학교.</span></li>
             <li><span>2025.04.15. Genericity of pseudo-Anosovs and quasi-isometries. Stanford Topology Seminar. 미국 캘리포니아의 스탠포드 대학교.</span></li>

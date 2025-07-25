@@ -32,6 +32,27 @@ MathJax.Hub.Config({
  <hr /><h4><span>Research papers for publication (Click each title for a brief summary)</span></h4>
  <ol reversed >
 
+<li><p><span onclick="PercolationClick()">Percolation on acylindrically hyperbolic groups (in progress)</span><br>
+    <span>with </span><a href="https://www.seodonggyun.com"><span>Donggyun Seo</span></a></p></li>
+<div id="Percolation" style="display:none">
+    <ul><li><p>We study Bernoulli bond percolation on the Cayley graphs of acylindrically hyperbolic groups. We show that $p_{c} < p_{u}$ for such graphs. In plain words, this means the following: there exists $p$ such that, if we remove each edge of the Cayley graph independently with probability $p$, then we see infintely many infinite clusters almost surely. This generalizes Hutchcroft's result on Gromov hyperbolic graphs.</p>
+ </li></ul>
+</div>
+
+
+<script>
+function PercolationClick() {
+  var x = document.getElementById("Percolation");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
+
+
 <li><p><span onclick="WPDClick()">Metric weak proper discontinuity for pseudo-Anosov maps</span><br>
     <a href='http://arxiv.org/abs/2506.21214'><span>arXiv:2506.21214</span></a><span> (2025)</span></p></li>
 <div id="WPD" style="display:none">
@@ -464,10 +485,11 @@ function randomSullivanClick() {
         <ul>
             <li><span>2026.03.23. TBA, University of Warwick, UK.</span></li>
             <li><span>2025.10.13. TBA, KIAS, South Korea.</span></li>
-            <li><span>2025.09.22. TBA, Autumn School on “Probability and Dynamics on Groups”, University of Münster, Germany.</span></li>
-            <li><span>2025.09.17. TBA, Groups, Dynamics and Surfaces in Paris. IMJ-PRG at Sorbonne, Paris, France.</span></li>
-            <li><span>2025.08.25. TBA, KIAS, South Korea.</span></li>
-            <li><span>2025.08.18. TBA, Algebraic and analytic methods in group theory in Warsaw, IMPAN, Warsaw, Poland.</span></li>
+            <li><span>2025.09.22. TBA, </span><a href="https://www.uni-muenster.de/MathematicsMuenster/events/2025/probdyn-on-groups.shtml"><span>Autumn School on “Probability and Dynamics on Groups”</span></a><span>, University of Münster, Germany.</span></li>
+            <li><span>2025.09.17. TBA, </span><a href="https://sites.google.com/view/gds-paris/home"><span>Groups, Dynamics and Surfaces in Paris.</span></a><span> IMJ-PRG at Sorbonne, Paris, France.</span></li>
+            <li><span>2025.08.25. Many infinite clusters from percolations on many groups. </span><a href="https://sites.google.com/view/kias-kaist-workshop"><span>KIAS-KAIST Workshop on current mathematical challenges</span></a> KIAS, South Korea.</span></li>
+            <li><span>2025.08.18. Metric WPD of pseudo-Anosov maps and quasimorphisms. </span><a href="https://sites.google.com/impan.pl/aamgt"><span>Algebraic and analytic methods in group theory in Warsaw</span></a><span>, IMPAN, Warsaw, Poland.</span></li>
+            <li><span>2025.08.06. Dynamics of semigroups of circle homeomorphisms. </span><a href="https://sites.google.com/view/ggdfestival2025"><span>One-day Festival of Group actions, Geometry and Dynamics</span></a><span>, KIAS, South Korea.</span></li>
             <li><span>2025.06.16. Genericity problem in groups with non-positive curvature. Conference on Geometric Group Theory and Related Topics. BICMR, Peking University, Beijing, China.</span></li>
             <li><span>2025.05.19. Counting pseudo-Anosovs and fully irreducibles. Recent Development in Geometric Group Theory. University of Tennessee, Knoxville, TN, USA.</span></li>
             <li><span>2025.04.15. Genericity of pseudo-Anosovs and quasi-isometries. Stanford Topology Seminar. CA, USA.</span></li>
