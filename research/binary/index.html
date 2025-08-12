@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Algorithm for Proposition 4.1.</title>
+<style>
+  body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 12px; background:#fafafa; color:#111; }
+  h1 { font-size:18px; margin:0 0 8px 0; }
+  .container { display:flex; gap:16px; align-items:flex-start; }
+  .left { background:white; padding:12px; border-radius:12px; box-shadow:0 6px 18px rgba(20,20,40,0.06); }
+  .controls { margin-bottom:8px; display:flex; gap:8px; align-items:center; }
+  button { padding:8px 12px; border-radius:8px; border:1px solid #ddd; background:#fff; cursor:pointer; }
+  button.primary { background:#0b63ff; color:#fff; border-color:#0b63ff; }
+  button.danger { background:#ff4d6d; color:#fff; border-color:#ff4d6d; }
+  .panel { width:320px; padding:12px; background:#fff; border-radius:12px; box-shadow:0 6px 18px rgba(20,20,40,0.06); }
+  .lists { display:flex; gap:8px; margin-top:8px; }
+  .list { flex:1; padding:8px; border-radius:8px; border:1px dashed #eee; min-height:60px; font-size:13px; background:#fbfbff; }
+  .list h4 { margin:0 0 6px 0; font-size:12px; }
+  .svgWrap { width:1000px; height:640px; }
+  line.edge { stroke:#bbb; stroke-width:1.2; }
+  g.node { cursor:pointer; transition:transform .12s ease; }
+  circle.nodeCircle { r:16; fill:#fff; stroke:#2b2b2b; stroke-width:1; }
+  text.nodelabel { font-size:12px; text-anchor:middle; dominant-baseline:middle; pointer-events:none; }
+  .selected circle.nodeCircle { stroke:#0b63ff; stroke-width:2.2; box-shadow:0 2px 6px rgba(11,99,255,0.18); }
+  .selected text.nodelabel { fill:#0b63ff; font-weight:600; }
+  line.edge.shaded-good {
+  stroke: #1a9b41;
+  stroke-width: 5;
+  stroke-opacity: 0.6;
+  transition: stroke 0.3s ease;
+}
+line.edge.shaded-bad {
+  stroke: #c72b2b;
+  stroke-width: 3;
+  stroke-opacity: 0.6;
+}
+line.edge.shaded-aux {
+  stroke: #c99b28;
+  stroke-width: 3;
+  stroke-opacity: 0.6;
+}
+
+
+
+  .shaded-good circle.nodeCircle { fill:#dff6e6; stroke:#1a9b41; stroke-width:1.6; }
+  .shaded-bad circle.nodeCircle { fill:#ffe3e6; stroke:#c72b2b; stroke-width:1.6; }
+  .shaded-aux circle.nodeCircle { fill:#fff7d9; stroke:#c99b28; stroke-width:1.6; }
+  .crossline { stroke:#c72b2b; stroke-width:2.5; stroke-linecap:round; }
+  /* blinking animation - implemented by toggling visibility */
+  .blink { animation: blinkAnim 0.9s linear infinite; }
+  @keyframes blinkAnim { 0% { opacity:1 } 50% { opacity:0.12 } 100% { opacity:1 } }
+  .nodeLabelSmall { font-size:10px; fill:#666; }
+  .legend { display:flex; gap:8px; margin-top:8px; font-size:12px; }
+  .legend div { display:flex; gap:6px; align-items:center; }
+  .legend span.box { width:18px; height:12px; display:inline-block; border-radius:4px; border:1px solid #ddd; }
+</style>
+</head>
+<body>
+  <h1>Interactive Binary Tree — click to select nodes (A)</h1>
+  <div class="container">
+    <div class="left">
+      <div class="controls">
+        <button id="resetBtn">Reset selections</button>
+        <button id="runBtn" class="primary">Run algorithm</button>
+        <button id="stopBtn" class="danger" title="Stop ongoing run">Stop</button>
+        <div style="margin-left:8px; font-size:13px;color:#555;">Click nodes to toggle selection. Selected set = A.</div>
+      </div>
+
+      <div class="svgWrap" id="svgWrap"></div>
+
+      <div class="legend">
+        <div><span class="box" style="background:#dff6e6;border-color:#1a9b41"></span> good elements and the auxiliary regions</div>
+        <div><span class="box" style="background:#ffe3e6;border-color:#c72b2b"></span> bad elements</div>
+        <div><span class="box" style="background:#fff7d9;border-color:#c99b28"></span> undecided elements</div>
+        <div style="margin-left:12px;color:#666;font-size:12px;">Blink duration = 1.5s.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin:0 0 8px 0;">State</h3>
+      <div><strong>Selected A:</strong> <span id="Aview">∅</span></div>
+      <div class="lists">
+        <div class="list" id="goodList"><h4>Good</h4><div id="goodItems">—</div></div>
+        <div class="list" id="badList"><h4>Bad</h4><div id="badItems">—</div></div>
+        <div class="list" id="undecList"><h4>Undecided</h4><div id="undecItems">—</div></div>
+      </div>
+      <hr />
+      <div style="font-size:13px;color:#444;">
+        Two more undecided elements are formed when one bad element is formed.
+
+        The number of good elements and undecided elements is never less than the number of bad elements.
+
+        The final shaded regions are disjoint and are in 1-1 correspondence with the ancestral good nodes.
+      </div>
+    </div>
+  </div>
+  <span>Code generated with aid of ChatGPT.</span>
+<p><a href='https://inhyeokchoi48.github.io/research'><span>Back to Inhyeok's Research page.</span></a></p>
+<script>
+/*
+ Implementation notes:
+ - Nodes are 0..63 (root = 0). Children: left = 2*i + 1, right = 2*i + 2.
+ - Algorithm processes i = 1..63 (as you specified).
+ - Each "blink" stage lasts roughly 2000 ms (2s) using Promise-based waits.
+ - All animations are sequential as in the algorithm.
+ - smallest means numerically smallest index in A that satisfies the criterion.
+*/
+
+const N = 63;
+const MAX = N - 1;
+const svgWidth = 1100, svgHeight = 640;
+const svgNS = "http://www.w3.org/2000/svg";
+let running = false;
+let stopRequested = false;
+
+const selected = new Set(); // A
+const goodSet = [];
+const badSet = [];
+const undecSet = [];
+
+function $(id){ return document.getElementById(id); }
+const svgWrap = $('svgWrap');
+
+function createSVG(){
+  svgWrap.innerHTML = '';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('width', svgWidth);
+  svg.setAttribute('height', svgHeight);
+  svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+  svg.style.background = '#ffffff';
+  svg.style.borderRadius = '12px';
+  svg.style.padding = '6px';
+
+  // compute positions by level
+  const levels = Math.ceil(Math.log2(N+1)); // ensures enough levels
+  // Alternatively compute by floor(log2(i+1))
+  const pos = Array(N).fill(null);
+  for(let i=0;i<N;i++){
+    const level = Math.floor(Math.log2(i+1));
+    const levelStart = (1<<level)-1;
+    const indexInLevel = i - levelStart;
+    const nodesInLevel = 1<<level;
+    const y = 40 + level * 80;
+    const padding = 30;
+    const leftMargin = padding;
+    const rightMargin = svgWidth - padding;
+    const usable = rightMargin - leftMargin;
+    const x = leftMargin + usable * (indexInLevel + 0.5) / nodesInLevel;
+    pos[i] = {x,y,level,indexInLevel};
+  }
+
+
+
+
+for(let i=0;i<N;i++){
+  const left = 2*i + 1, right = 2*i + 2;
+  if(left < N){
+    const line = document.createElementNS(svgNS,'line');
+    line.setAttribute('x1', pos[i].x);
+    line.setAttribute('y1', pos[i].y + 12);
+    line.setAttribute('x2', pos[left].x);
+    line.setAttribute('y2', pos[left].y - 12);
+    line.setAttribute('class', 'edge');
+    line.setAttribute('data-parent', i);
+    line.setAttribute('data-child', left);
+    svg.appendChild(line);
+  }
+  if(right < N){
+    const line = document.createElementNS(svgNS,'line');
+    line.setAttribute('x1', pos[i].x);
+    line.setAttribute('y1', pos[i].y + 12);
+    line.setAttribute('x2', pos[right].x);
+    line.setAttribute('y2', pos[right].y - 12);
+    line.setAttribute('class', 'edge');
+    line.setAttribute('data-parent', i);
+    line.setAttribute('data-child', right);
+    svg.appendChild(line);
+  }
+}
+
+  // nodes
+  for(let i=0;i<N;i++){
+    const g = document.createElementNS(svgNS,'g');
+    g.setAttribute('class','node');
+    g.setAttribute('data-i', i);
+    g.setAttribute('transform', `translate(${pos[i].x}, ${pos[i].y})`);
+
+    const circle = document.createElementNS(svgNS,'circle');
+    circle.setAttribute('r', 12);
+    circle.setAttribute('class','nodeCircle');
+    circle.setAttribute('fill','#fff');
+    g.appendChild(circle);
+
+    const label = document.createElementNS(svgNS,'text');
+    label.setAttribute('class','nodelabel');
+    label.textContent = i;
+    g.appendChild(label);
+
+    // cross lines (hidden initially)
+    const cross1 = document.createElementNS(svgNS,'line');
+    cross1.setAttribute('x1', -12); cross1.setAttribute('y1', -12);
+    cross1.setAttribute('x2', 12); cross1.setAttribute('y2', 12);
+    cross1.setAttribute('class', 'crossline');
+    cross1.setAttribute('visibility','hidden');
+    g.appendChild(cross1);
+    const cross2 = document.createElementNS(svgNS,'line');
+    cross2.setAttribute('x1', -12); cross2.setAttribute('y1', 12);
+    cross2.setAttribute('x2', 12); cross2.setAttribute('y2', -12);
+    cross2.setAttribute('class', 'crossline');
+    cross2.setAttribute('visibility','hidden');
+    g.appendChild(cross2);
+
+    // click handler to toggle selection (A)
+    g.addEventListener('click', (e)=>{
+      if(running) return; // disable toggling while running algorithm
+      const idx = Number(g.getAttribute('data-i'));
+      if(selected.has(idx)) selected.delete(idx);
+      else selected.add(idx);
+      refreshSelections();
+      e.stopPropagation();
+    });
+
+    svg.appendChild(g);
+  }
+
+  svgWrap.appendChild(svg);
+}
+createSVG();
+
+function nodeElem(i){
+  return svgWrap.querySelector(`g.node[data-i='${i}']`);
+}
+function circleElem(i){
+  return nodeElem(i).querySelector('circle.nodeCircle');
+}
+
+function edgeElem(i){
+  return nodeElem(i).querySelector('line.edge');
+}
+
+function crossElem(i){
+  const g = nodeElem(i);
+  return Array.from(g.querySelectorAll('.crossline'));
+}
+
+function refreshSelections(){
+  // update visuals for selected
+  for(let i=0;i<N;i++){
+    const g = nodeElem(i);
+    if(selected.has(i)) g.classList.add('selected');
+    else g.classList.remove('selected');
+    // clear transient classes when not running
+    g.classList.remove('blink');
+  }
+  $('Aview').textContent = selected.size ? Array.from(selected).sort((a,b)=>a-b).join(', ') : '∅';
+  updateLists();
+}
+
+function updateLists(){
+  $('goodItems').textContent = goodSet.length ? goodSet.join(', ') : '—';
+  $('badItems').textContent = badSet.length ? badSet.join(', ') : '—';
+  $('undecItems').textContent = undecSet.length ? undecSet.join(', ') : '—';
+}
+
+// Utility: get all descendants (strict descendants; excluding node itself) but sometimes we want including self
+function descendantsOf(i, includeSelf=false){
+  const result = [];
+  const stack = [];
+  const start = 2*i + 1; // left child index of i
+  if(start <= MAX) stack.push(start);
+  const start2 = 2*i + 2;
+  if(start2 <= MAX) stack.push(start2);
+  while(stack.length){
+    const cur = stack.shift();
+    result.push(cur);
+    const l = 2*cur + 1, r = 2*cur + 2;
+    if(l <= MAX) stack.push(l);
+    if(r <= MAX) stack.push(r);
+  }
+  if(includeSelf) result.unshift(i);
+  return result;
+}
+
+// is a ancestor of b?
+function isAncestor(a,b){
+  if(a === b) return true;
+  let cur = b;
+  while(cur > 0){
+    cur = Math.floor((cur - 1) / 2);
+    if(cur === a) return true;
+  }
+  return false;
+}
+
+// sleep helper
+function sleep(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+// blink a single node or a set of nodes for duration ms
+async function blinkNodes(nodes, duration=1500){
+  nodes.forEach(i => nodeElem(i).classList.add('blink'));
+  // await duration (we will use .9s animation but keep nodes blinking for duration)
+  const step = 60;
+  let waited = 0;
+  while(waited < duration){
+    if(stopRequested) break;
+    const chunk = Math.min(step, duration - waited);
+    await sleep(chunk);
+    waited += chunk;
+  }
+  nodes.forEach(i => nodeElem(i).classList.remove('blink'));
+}
+
+// shade region containing specific nodes permanently by adding classes
+function shadeNodes(nodes, type='good'){
+  const nodeSet = new Set(nodes);
+  // shade nodes
+  nodes.forEach(i=>{
+    const g = nodeElem(i);
+    g.classList.remove('shaded-bad','shaded-aux','shaded-good');
+    if(type === 'good') g.classList.add('shaded-good');
+    else if(type === 'bad') g.classList.add('shaded-bad');
+    else g.classList.add('shaded-aux');
+  });
+
+  // shade edges connecting nodes inside the region
+  // get all edges
+  const edges = svgWrap.querySelectorAll('line.edge');
+  edges.forEach(edge=>{
+    const p = Number(edge.getAttribute('data-parent'));
+    const c = Number(edge.getAttribute('data-child'));
+    if(nodeSet.has(p) && nodeSet.has(c)){
+      // edge inside region => shade it
+      edge.classList.remove('shaded-good','shaded-bad','shaded-aux');
+      if(type === 'good') edge.classList.add('shaded-good');
+      else if(type === 'bad') edge.classList.add('shaded-bad');
+      else edge.classList.add('shaded-aux');
+    } else {
+      // remove shading if edge not inside region (to avoid leftover shading)
+
+    }
+  });
+}
+
+
+// cross out node i (make X visible)
+function crossOut(i){
+  const [c1,c2] = crossElem(i);
+  c1.setAttribute('visibility','visible');
+  c2.setAttribute('visibility','visible');
+}
+
+function removeFromUndecided(i) {
+  const idx = undecSet.indexOf(i);
+  if(idx !== -1){
+    undecSet.splice(idx,1);
+    // Remove auxiliary shading from node
+    const g = nodeElem(i);
+    if(g){
+      g.classList.remove('shaded-aux');
+    }
+  }
+}
+
+// algorithm-run: as described by the user
+async function runAlgorithm(){
+  if(running) return;
+  running = true;
+  stopRequested = false;
+  goodSet.splice(0,goodSet.length);
+  badSet.splice(0,badSet.length);
+  undecSet.splice(0,undecSet.length);
+  // clear any shading or crosses
+  for(let i=0;i<N;i++){
+    const g = nodeElem(i);
+    g.classList.remove('shaded-good','shaded-bad','shaded-aux');
+    crossElem(i).forEach(line => line.setAttribute('visibility','hidden'));
+  }
+  updateLists();
+
+  // Helper to test membership of any descendant in A
+  function anyDescendantInA(i, includeSelf=false){
+    const desc = descendantsOf(i, includeSelf);
+    for(const d of desc){
+      if(selected.has(d)) return true;
+    }
+    return false;
+  }
+
+  function smallestInAAmong(list){
+    if(!list || !list.length) return null;
+    const filtered = Array.from(list).filter(x => selected.has(x)).sort((a,b)=>a-b);
+    return filtered.length ? filtered[0] : null;
+  }
+
+  for(let i=0;i<=63;i++){ // per specification: for each i = 0,...,63
+    if(stopRequested) break;
+
+    if(selected.has(i)){
+
+        await blinkNodes([i], 1500);
+        if(stopRequested) break;
+      // blink the region containing i and its descendants for 2s
+      const region = descendantsOf(i, true); // include i
+      await blinkNodes(region, 1500);
+      if(stopRequested) break;
+
+      // if no descendant of i is in A
+      // careful: "no descendent of i is in A" -> I interpret as none of the strict descendants are in A.
+      const strictDesc = descendantsOf(i, false);
+      const strictDescHas = strictDesc.some(d => selected.has(d));
+      if(!strictDescHas){
+        // then put i in good, color the region containing i and its descendants forever;
+        removeFromUndecided(i);
+        goodSet.push(i);
+        shadeNodes([i, ...strictDesc], 'good');
+        updateLists();
+      } else {
+        // otherwise:
+        // pick smallest j in A that is a descendent of i;
+        const jCandidates = strictDesc.filter(d => selected.has(d)).sort((a,b)=>a-b);
+        const j = jCandidates[0];
+        // pick the child i' of i that is not an ancestor of j;
+        const left = 2*i + 1, right = 2*i + 2;
+        // identify which child is ancestor of j
+        let childUnused = null;
+        if(left <= MAX && isAncestor(left, j)) childUnused = right;
+        else if(right <= MAX && isAncestor(right, j)) childUnused = left;
+        else {
+          // if none are ancestors (shouldn't happen if j is descendant of i), pick the one that exists but not equal...
+          childUnused = (left <= MAX) ? left : ((right <= MAX) ? right : null);
+        }
+        if(childUnused === null){
+          // degenerate, treat as bad
+          removeFromUndecided(i);
+          badSet.push(i);
+          shadeNodes([i], 'bad');
+          crossOut(i);
+          updateLists();
+          continue;
+        }
+
+        // blink the region containing i' and its descendents for 2s;
+        const regionIprime = descendantsOf(childUnused, true);
+        await blinkNodes(regionIprime, 1500);
+        if(stopRequested) break;
+
+        // if no descendent of i' (including i') is in A:
+        const hasInIprime = regionIprime.some(d => selected.has(d));
+        if(!hasInIprime){
+          // then put i in good, shade the region containing i, i' and the descendents of i';
+          removeFromUndecided(i);
+          goodSet.push(i);
+          shadeNodes([i, ...regionIprime], 'good'); // shade i and regionIprime
+          updateLists();
+        } else {
+          // otherwise:
+          // pick the smallest k in A that is a descendent of i';
+          const kCandidates = regionIprime.filter(d => selected.has(d)).sort((a,b)=>a-b);
+          const k = kCandidates[0];
+          // put j and k in undec(), put i in bad();
+          undecSet.push(j);
+          undecSet.push(k);
+          removeFromUndecided(i);
+          badSet.push(i);
+          // Cross out (X) the node i;
+          crossOut(i);
+          // shade j and k with auxiliary shading (undec) and shade i as bad
+          shadeNodes([j,k], 'aux');
+          shadeNodes([i], 'bad');
+          updateLists();
+        }
+      }
+    } // end if i in A
+  } // end for
+  running = false;
+}
+
+// wire up buttons
+$('resetBtn').addEventListener('click', ()=>{
+  if(running) return;
+  selected.clear();
+  goodSet.splice(0,goodSet.length);
+  badSet.splice(0,badSet.length);
+  undecSet.splice(0,undecSet.length);
+  // clear visuals
+  for(let i=0;i<N;i++){
+    const g = nodeElem(i);
+    g.classList.remove('selected','shaded-good','shaded-bad','shaded-aux','blink');
+    crossElem(i).forEach(line => line.setAttribute('visibility','hidden'));
+  }
+  const edges = svgWrap.querySelectorAll('line.edge');
+edges.forEach(edge => {
+  edge.classList.remove('shaded-good', 'shaded-bad', 'shaded-aux');
+});
+  refreshSelections();
+});
+
+$('runBtn').addEventListener('click', async ()=>{
+  if(running) return;
+  runAlgorithm();
+});
+
+$('stopBtn').addEventListener('click', ()=>{
+  if(!running) return;
+  stopRequested = true;
+  running = false;
+});
+
+// initial render
+refreshSelections();
+
+
+
+
+</script>
+</body>
+</html>
