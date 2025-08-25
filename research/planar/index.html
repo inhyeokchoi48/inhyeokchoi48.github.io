@@ -24,6 +24,8 @@
   footer{ padding:8px 14px; font-size:13px; color:var(--muted); border-top:1px solid rgba(255,255,255,0.03); }
   .legend{display:flex; gap:12px; align-items:center;}
   .swatch{width:16px;height:10px;border-radius:2px;display:inline-block}
+  #stats{ margin-left: auto; text-align:right; }
+  #stats .value{ color:var(--fg); font-weight:600; }
 </style>
 </head>
 <body>
@@ -52,6 +54,7 @@
       </div>
       <button id="reset">Reset</button>
       <button id="toggle">Start ▶</button>
+      <button id="toggleNodesBtn">Hide nodes</button>
     </div>
   </header>
 
@@ -68,6 +71,10 @@
       <div><span class="swatch" style="background:var(--accent)"></span> alive edge</div>
       <div><span class="swatch" style="background:var(--dead)"></span> deleted edge</div>
       <div style="margin-left:12px;color:var(--muted)">Zoom: + / - keys, buttons, or wheel + Ctrl (⌘)</div>
+    </div>
+    <div id="stats">
+      <div>Tick: <span id="tickCount" class="value">0</span></div>
+      <div>Edges removed: <span id="removedEdges" class="value">0</span></div>
     </div>
   </footer>
 </div>
@@ -86,15 +93,23 @@ const cellInp = document.getElementById('cell');
 const tickInp = document.getElementById('tick');
 const resetBtn = document.getElementById('reset');
 const toggleBtn = document.getElementById('toggle');
+const toggleNodesBtn = document.getElementById('toggleNodesBtn');
 
 const zoomInBtn = document.getElementById('zoomIn');
 const zoomOutBtn = document.getElementById('zoomOut');
 const resetZoomBtn = document.getElementById('resetZoom');
 
+const tickCountSpan = document.getElementById('tickCount');
+const removedEdgesSpan = document.getElementById('removedEdges');
+
 let timer = null;
 let running = false;
 let scale = 1;           // zoom scale
 const MIN_SCALE = 0.05, MAX_SCALE = 20;
+
+let nodesOn = true;
+let tickCount = 0;
+let totalEdges = 0;
 
 /* ---------- Grid & edges data ----------
  We'll represent edges as objects:
@@ -114,10 +129,18 @@ pSlider.addEventListener('input', () => pVal.textContent = Number(pSlider.value)
 
 resetBtn.addEventListener('click', resetGrid);
 toggleBtn.addEventListener('click', () => running ? stop() : start());
+toggleNodesBtn.addEventListener('click', toggleNodes);
 
 zoomInBtn.addEventListener('click', () => zoomAtViewportCenter(1.2));
 zoomOutBtn.addEventListener('click', () => zoomAtViewportCenter(0.8));
 resetZoomBtn.addEventListener('click', resetZoom);
+
+/* ---------- New functions ---------- */
+function toggleNodes() {
+  nodesOn = !nodesOn;
+  toggleNodesBtn.textContent = nodesOn ? 'Hide nodes' : 'Show nodes';
+  draw();
+}
 
 /* ---------- Build + Reset ---------- */
 function buildGrid(W, H, cell) {
@@ -155,6 +178,9 @@ function resetGrid() {
   cellSize = Math.max(6, Math.min(200, parseInt(cellInp.value) || 24));
 
   edges = buildGrid(gridW, gridH, cellSize);
+  totalEdges = edges.length;
+  tickCount = 0;
+  updateStats();
   stop();
   scale = 1;
   const size = computeCanvasSize(gridW, gridH, cellSize);
@@ -194,7 +220,15 @@ function stepDeletion() {
   for (let i = 0; i < edges.length; i++) {
     if (edges[i].alive && Math.random() < p) edges[i].alive = false;
   }
+  tickCount++;
+  updateStats();
   draw();
+}
+
+function updateStats() {
+  const removedCount = edges.filter(e => !e.alive).length;
+  tickCountSpan.textContent = tickCount;
+  removedEdgesSpan.textContent = `${removedCount} (${((removedCount / totalEdges) * 100).toFixed(2)}%)`;
 }
 
 function start() {
@@ -262,17 +296,19 @@ function draw() {
   ctx.stroke();
 
   // (optional) draw small dots at nodes
-  ctx.beginPath();
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--fg');
-  const dotR = Math.max(0.6, 2 / Math.max(0.0001, scale));
-  for (let y = 0; y < gridH; y++) {
-    for (let x = 0; x < gridW; x++) {
-      const n = nodeXY(x,y);
-      ctx.moveTo(n.x + dotR, n.y);
-      ctx.arc(n.x, n.y, dotR, 0, Math.PI*2);
+  if (nodesOn) {
+    ctx.beginPath();
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--fg');
+    const dotR = Math.max(0.6, 2 / Math.max(0.0001, scale));
+    for (let y = 0; y < gridH; y++) {
+      for (let x = 0; x < gridW; x++) {
+        const n = nodeXY(x,y);
+        ctx.moveTo(n.x + dotR, n.y);
+        ctx.arc(n.x, n.y, dotR, 0, Math.PI*2);
+      }
     }
+    ctx.fill();
   }
-  ctx.fill();
 
   ctx.restore();
 }
