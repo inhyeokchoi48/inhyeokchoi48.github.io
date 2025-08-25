@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Percolation on Planar Grid (edge deletion)</title>
+<style>
+  :root{
+    --bg:#0f1220; --fg:#e6e6eb; --muted:#a7adc0; --accent:#00d084; --dead:#333746; --panel:#151625;
+  }
+  html,body{height:100%; margin:0; background:var(--bg); color:var(--fg); font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;}
+  .app { display: grid; grid-template-rows: auto 1fr auto; height:100vh; }
+  header { padding:12px 14px; display:flex; gap:12px; align-items:center; background:rgba(0,0,0,0.12); border-bottom:1px solid rgba(255,255,255,0.03); }
+  h1{font-size:15px;margin:0;font-weight:600;}
+  .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  .control{display:grid;gap:4px;font-size:12px;color:var(--muted);}
+  input[type=range]{width:180px}
+  input[type=number]{width:80px;background:var(--panel);color:var(--fg);border:1px solid rgba(255,255,255,0.04);border-radius:6px;padding:6px}
+  button{background:#111329;color:var(--fg);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;cursor:pointer}
+  #wrap{ overflow:auto; width:100%; height:100%; position:relative; background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent); }
+  canvas{ display:block; background:transparent; }
+  .zoom-controls{ position:fixed; right:16px; top:88px; display:flex; flex-direction:column; gap:8px; z-index:1000;}
+  .zoom-controls button{width:44px;height:44px;border-radius:10px;font-size:18px}
+  footer{ padding:8px 14px; font-size:13px; color:var(--muted); border-top:1px solid rgba(255,255,255,0.03); }
+  .legend{display:flex; gap:12px; align-items:center;}
+  .swatch{width:16px;height:10px;border-radius:2px;display:inline-block}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Planar-grid percolation — delete each edge with prob p each tick</h1>
+    <div class="controls" style="margin-left:8px;">
+      <div class="control">
+        <label>p (delete probability per edge per tick) <span id="pVal">0.10</span></label>
+        <input id="p" type="range" min="0" max="1" step="0.01" value="0.10" />
+      </div>
+      <div class="control">
+        <label>Grid W × H</label>
+        <div style="display:flex;gap:6px;">
+          <input id="gridW" type="number" min="2" max="200" value="40" /> ×
+          <input id="gridH" type="number" min="2" max="200" value="30" />
+        </div>
+      </div>
+      <div class="control">
+        <label>Cell size (px)</label>
+        <input id="cell" type="number" min="8" max="200" value="24" />
+      </div>
+      <div class="control">
+        <label>Tick (ms)</label>
+        <input id="tick" type="number" min="50" max="5000" step="50" value="1000" />
+      </div>
+      <button id="reset">Reset</button>
+      <button id="toggle">Start ▶</button>
+    </div>
+  </header>
+
+  <div id="wrap"><canvas id="canvas"></canvas></div>
+
+  <div class="zoom-controls" aria-hidden="false">
+    <button id="zoomIn" title="Zoom in">+</button>
+    <button id="zoomOut" title="Zoom out">−</button>
+    <button id="resetZoom" title="Reset zoom">⤢</button>
+  </div>
+
+  <footer>
+    <div class="legend">
+      <div><span class="swatch" style="background:var(--accent)"></span> alive edge</div>
+      <div><span class="swatch" style="background:var(--dead)"></span> deleted edge</div>
+      <div style="margin-left:12px;color:var(--muted)">Zoom: + / - keys, buttons, or wheel + Ctrl (⌘)</div>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* ---------- Utilities & DOM ---------- */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const wrap = document.getElementById('wrap');
+
+const pSlider = document.getElementById('p');
+const pVal = document.getElementById('pVal');
+const gridWInp = document.getElementById('gridW');
+const gridHInp = document.getElementById('gridH');
+const cellInp = document.getElementById('cell');
+const tickInp = document.getElementById('tick');
+const resetBtn = document.getElementById('reset');
+const toggleBtn = document.getElementById('toggle');
+
+const zoomInBtn = document.getElementById('zoomIn');
+const zoomOutBtn = document.getElementById('zoomOut');
+const resetZoomBtn = document.getElementById('resetZoom');
+
+let timer = null;
+let running = false;
+let scale = 1;           // zoom scale
+const MIN_SCALE = 0.05, MAX_SCALE = 20;
+
+/* ---------- Grid & edges data ----------
+ We'll represent edges as objects:
+  { a: [i,j], b: [k,l], alive: true }
+ The grid nodes are at integer lattice (0..W-1, 0..H-1).
+ We'll generate horizontal edges between (x,y)-(x+1,y) and vertical edges (x,y)-(x,y+1).
+ The canvas content coordinate system: origin will be at canvas center, as in previous demos.
+---------- */
+
+let gridW = 40, gridH = 30, cellSize = 24;
+let edges = []; // array of edges
+let padding = 40; // px outside bounding box
+
+/* ---------- DOM wiring ---------- */
+pVal.textContent = Number(pSlider.value).toFixed(2);
+pSlider.addEventListener('input', () => pVal.textContent = Number(pSlider.value).toFixed(2));
+
+resetBtn.addEventListener('click', resetGrid);
+toggleBtn.addEventListener('click', () => running ? stop() : start());
+
+zoomInBtn.addEventListener('click', () => zoomAtViewportCenter(1.2));
+zoomOutBtn.addEventListener('click', () => zoomAtViewportCenter(0.8));
+resetZoomBtn.addEventListener('click', resetZoom);
+
+/* ---------- Build + Reset ---------- */
+function buildGrid(W, H, cell) {
+  const arr = [];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      // horizontal edge to right neighbor
+      if (x + 1 < W) arr.push({ a: [x,y], b: [x+1,y], alive: true });
+      // vertical edge to bottom neighbor
+      if (y + 1 < H) arr.push({ a: [x,y], b: [x,y+1], alive: true });
+    }
+  }
+  return arr;
+}
+
+function computeCanvasSize(W, H, cell) {
+  // We draw nodes centered in a bounding box of size (W-1)*cell by (H-1)*cell
+  const width = Math.max(100, (W-1) * cell + padding * 2);
+  const height = Math.max(100, (H-1) * cell + padding * 2);
+  return { width: Math.ceil(width), height: Math.ceil(height) };
+}
+
+function setCanvasCSSSize(w, h) {
+  // keep canvas backing store same as CSS px for simplicity (HiDPI not strictly required here)
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = Math.round(w);
+  canvas.height = Math.round(h);
+}
+
+function resetGrid() {
+  // read controls
+  gridW = Math.max(2, Math.min(200, parseInt(gridWInp.value) || 40));
+  gridH = Math.max(2, Math.min(200, parseInt(gridHInp.value) || 30));
+  cellSize = Math.max(6, Math.min(200, parseInt(cellInp.value) || 24));
+
+  edges = buildGrid(gridW, gridH, cellSize);
+  stop();
+  scale = 1;
+  const size = computeCanvasSize(gridW, gridH, cellSize);
+  // we'll use a canvas sized to content (may be non-square)
+  setCanvasCSSSize(size.width, size.height);
+  // ensure the wrapper fits the middle area
+  sizeWrapToViewport();
+  draw();     // draw initial full grid
+  centerView(); // center scroll to middle
+}
+
+/* ---------- Viewport sizing & scrolling helpers ---------- */
+function sizeWrapToViewport() {
+  const headerH = document.querySelector('header').offsetHeight;
+  const footerH = document.querySelector('footer').offsetHeight;
+  const avail = Math.max(120, window.innerHeight - headerH - footerH);
+  wrap.style.height = avail + 'px';
+}
+window.addEventListener('resize', () => {
+  sizeWrapToViewport();
+});
+
+function clampScroll(left, top) {
+  const maxLeft = Math.max(0, canvas.clientWidth - wrap.clientWidth);
+  const maxTop = Math.max(0, canvas.clientHeight - wrap.clientHeight);
+  const L = Math.max(0, Math.min(left, maxLeft));
+  const T = Math.max(0, Math.min(top, maxTop));
+  wrap.scrollLeft = L; wrap.scrollTop = T;
+}
+function centerView() {
+  clampScroll((canvas.clientWidth - wrap.clientWidth)/2, (canvas.clientHeight - wrap.clientHeight)/2);
+}
+
+/* ---------- Per-tick deletion ---------- */
+function stepDeletion() {
+  const p = Number(pSlider.value);
+  for (let i = 0; i < edges.length; i++) {
+    if (edges[i].alive && Math.random() < p) edges[i].alive = false;
+  }
+  draw();
+}
+
+function start() {
+  const tick = Math.max(10, Math.min(60000, parseInt(tickInp.value) || 1000));
+  if (timer) clearInterval(timer);
+  timer = setInterval(stepDeletion, tick);
+  running = true;
+  toggleBtn.textContent = 'Pause ❚❚';
+}
+function stop() {
+  if (timer) clearInterval(timer);
+  timer = null;
+  running = false;
+  toggleBtn.textContent = 'Start ▶';
+}
+
+/* ---------- Drawing ---------- */
+function draw() {
+  // We'll draw with origin at canvas center to make scaling around center easy
+  const W = canvas.width, H = canvas.height;
+  // clear
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,canvas.width, canvas.height);
+
+  // apply center translation and scale
+  ctx.save();
+  ctx.translate(W/2, H/2);
+  ctx.scale(scale, scale);
+
+  // compute bounding box center offset: nodes placed so that bounding box center is at origin
+  // bounding box size:
+  const bboxW = (gridW - 1) * cellSize;
+  const bboxH = (gridH - 1) * cellSize;
+  const originOffsetX = -bboxW/2;
+  const originOffsetY = -bboxH/2;
+
+  // helper: node (x,y) -> canvas coords (cx,cy) in this transformed space
+  function nodeXY(x, y) { return { x: originOffsetX + x * cellSize, y: originOffsetY + y * cellSize }; }
+
+  // optional faint grid rings or background (none needed)
+  // draw deleted edges then alive edges so alive are on top
+  const dead = edges.filter(e => !e.alive);
+  const alive = edges.filter(e => e.alive);
+
+  // draw dead edges
+  ctx.beginPath();
+  ctx.lineWidth = 1 / Math.max(0.0001, scale);
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--dead');
+  for (const e of dead) {
+    const A = nodeXY(e.a[0], e.a[1]);
+    const B = nodeXY(e.b[0], e.b[1]);
+    ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y);
+  }
+  ctx.stroke();
+
+  // draw alive edges
+  ctx.beginPath();
+  ctx.lineWidth = 2 / Math.max(0.0001, scale);
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+  for (const e of alive) {
+    const A = nodeXY(e.a[0], e.a[1]);
+    const B = nodeXY(e.b[0], e.b[1]);
+    ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y);
+  }
+  ctx.stroke();
+
+  // (optional) draw small dots at nodes
+  ctx.beginPath();
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--fg');
+  const dotR = Math.max(0.6, 2 / Math.max(0.0001, scale));
+  for (let y = 0; y < gridH; y++) {
+    for (let x = 0; x < gridW; x++) {
+      const n = nodeXY(x,y);
+      ctx.moveTo(n.x + dotR, n.y);
+      ctx.arc(n.x, n.y, dotR, 0, Math.PI*2);
+    }
+  }
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/* ---------- Zooming: keep viewport center fixed ---------- */
+function zoomAtViewportCenter(factor) {
+  const oldScale = scale;
+  let newScale = clamp(scale * factor, MIN_SCALE, MAX_SCALE);
+  if (Math.abs(newScale - oldScale) < 1e-6) return;
+
+  // viewport center in canvas CSS coords
+  const vpX = wrap.scrollLeft + wrap.clientWidth / 2;
+  const vpY = wrap.scrollTop  + wrap.clientHeight / 2;
+
+  // canvas center in CSS coords
+  const cx = canvas.clientWidth / 2;
+  const cy = canvas.clientHeight / 2;
+
+  // compute the content point (in unscaled canvas coords centered at canvas center) at viewport center
+  // (vpX - cx) is offset in CSS pixels from canvas center; divide by oldScale to get content coords
+  const relX = (vpX - cx) / oldScale;
+  const relY = (vpY - cy) / oldScale;
+
+  // update scale and redraw
+  scale = newScale;
+  draw();
+
+  // compute new position of that content point (in CSS coords)
+  const newPosX = cx + relX * newScale;
+  const newPosY = cy + relY * newScale;
+
+  // adjust scroll so that the content point returns to the viewport center
+  const deltaX = newPosX - vpX;
+  const deltaY = newPosY - vpY;
+  clampScroll(wrap.scrollLeft + deltaX, wrap.scrollTop + deltaY);
+}
+
+function resetZoom() {
+  const oldScale = scale;
+  if (Math.abs(oldScale - 1) < 1e-9) return;
+  // keep viewport center content point and reset to scale 1
+  const vpX = wrap.scrollLeft + wrap.clientWidth / 2;
+  const vpY = wrap.scrollTop  + wrap.clientHeight / 2;
+  const cx = canvas.clientWidth / 2;
+  const cy = canvas.clientHeight / 2;
+  const relX = (vpX - cx) / oldScale;
+  const relY = (vpY - cy) / oldScale;
+  scale = 1;
+  draw();
+  const newPosX = cx + relX * scale;
+  const newPosY = cy + relY * scale;
+  clampScroll(wrap.scrollLeft + (newPosX - vpX), wrap.scrollTop + (newPosY - vpY));
+}
+
+/* ---------- Input handlers: keyboard and wheel ---------- */
+// keyboard: + / = / NumpadAdd => zoom in; - / NumpadSubtract => zoom out
+window.addEventListener('keydown', (ev) => {
+  const tag = ev.target && ev.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || (ev.target && ev.target.isContentEditable)) return;
+  if (ev.key === '+' || ev.key === '=' || ev.code === 'NumpadAdd') { ev.preventDefault(); zoomAtViewportCenter(1.15); }
+  else if (ev.key === '-' || ev.code === 'NumpadSubtract') { ev.preventDefault(); zoomAtViewportCenter(0.85); }
+});
+
+// wheel: if ctrlKey (or metaKey) is held, zoom; otherwise perform default scroll of the wrapper
+wrap.addEventListener('wheel', (ev) => {
+  if (ev.ctrlKey || ev.metaKey) {
+    ev.preventDefault();
+    const factor = ev.deltaY < 0 ? 1.08 : 0.92;
+    zoomAtViewportCenter(factor);
+  }
+}, { passive: false });
+
+/* ---------- Helpers ---------- */
+function clamp(v, lo, hi){ return Math.min(hi, Math.max(lo, v)); }
+
+/* ---------- Boot ---------- */
+sizeWrapToViewport();
+resetGrid();
+
+</script>
+</body>
+</html>

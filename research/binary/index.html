@@ -63,7 +63,7 @@ line.edge.shaded-aux {
       <div class="controls">
         <button id="resetBtn">Reset selections</button>
         <button id="runBtn" class="primary">Run algorithm</button>
-        <button id="stopBtn" class="danger" title="Stop ongoing run">Stop</button>
+        <button id="pauseBtn" class="danger" title="Pause/Resume run">Pause</button>
         <div style="margin-left:8px; font-size:13px;color:#555;">Click nodes to toggle selection. Selected set = A.</div>
       </div>
 
@@ -112,12 +112,20 @@ const MAX = N - 1;
 const svgWidth = 1100, svgHeight = 640;
 const svgNS = "http://www.w3.org/2000/svg";
 let running = false;
-let stopRequested = false;
+let paused = false;
+
 
 const selected = new Set(); // A
 const goodSet = [];
 const badSet = [];
 const undecSet = [];
+
+async function checkPaused() {
+  while (paused) {
+    await sleep(200); // check every 200ms
+  }
+}
+
 
 function $(id){ return document.getElementById(id); }
 const svgWrap = $('svgWrap');
@@ -303,7 +311,7 @@ async function blinkNodes(nodes, duration=1500){
   const step = 60;
   let waited = 0;
   while(waited < duration){
-    if(stopRequested) break;
+    await checkPaused();
     const chunk = Math.min(step, duration - waited);
     await sleep(chunk);
     waited += chunk;
@@ -394,12 +402,11 @@ async function runAlgorithm(){
   }
 
   for(let i=0;i<=63;i++){ // per specification: for each i = 0,...,63
-    if(stopRequested) break;
+     await checkPaused();
 
-    if(selected.has(i)){
-
-        await blinkNodes([i], 1500);
-        if(stopRequested) break;
+  if (selected.has(i)) {
+    await blinkNodes([i], 1500);
+    await checkPaused();
       // blink the region containing i and its descendants for 2s
       const region = descendantsOf(i, true); // include i
       await blinkNodes(region, 1500);
@@ -501,10 +508,10 @@ $('runBtn').addEventListener('click', async ()=>{
   runAlgorithm();
 });
 
-$('stopBtn').addEventListener('click', ()=>{
-  if(!running) return;
-  stopRequested = true;
-  running = false;
+$('pauseBtn').addEventListener('click', () => {
+  if (!running) return;
+  paused = !paused;
+  $('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
 });
 
 // initial render

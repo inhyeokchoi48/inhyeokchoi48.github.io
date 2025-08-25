@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Random Edge Deletion (Percolation) on a Surface-Group–like Graph</title>
+  <style>
+    :root {
+      --bg: #0f1220;
+      --fg: #e6e6eb;
+      --muted: #a7adc0;
+      --accent: #ff4d4f;
+      --edge-dead: #2a2f45;
+      --panel: #171a2b;
+    }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 900px at 70% 10%, #151936, var(--bg));
+      color: var(--fg);
+      font: 14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+    }
+    header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(0,0,0,0.15);
+      border-bottom: 1px solid #232844;
+      backdrop-filter: blur(6px);
+    }
+    header h1 { font-size: 16px; margin: 0 6px 0 0; font-weight: 600; letter-spacing: .3px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+    .control { display: grid; gap: 6px; }
+    .control label { color: var(--muted); font-size: 12px; }
+    input[type="range"] { width: 220px; }
+    input[type="number"] { width: 80px; background: var(--panel); color: var(--fg); border: 1px solid #2a2f45; border-radius: 8px; padding: 6px 8px; }
+    button { cursor: pointer; padding: 8px 14px; border-radius: 10px; border: 1px solid #2a2f45; background: #1d2138; color: var(--fg); font-weight: 600; }
+    button:hover { filter: brightness(1.05); }
+    button:active { transform: translateY(1px); }
+
+    /* scrollable wrapper */
+    #wrap { position: relative; width:100%; height:100%; overflow:auto; background: transparent; }
+    #canvas { display:block; background: transparent; }
+
+    /* floating zoom controls (fixed to the viewport, top-right below header) */
+    .zoom-controls {
+      position: fixed;
+      top: 78px; /* a little below the header */
+      right: 18px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: auto;
+    }
+    .zoom-controls button {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      font-size: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    footer { padding: 8px 14px; color: var(--muted); border-top: 1px solid #232844; }
+    .legend { display:flex; gap: 18px; align-items:center; }
+    .chip { display:inline-flex; align-items:center; gap:6px; }
+    .dot { width: 14px; height: 2px; border-radius: 2px; background: var(--accent); display:inline-block; }
+    .dot.dead { background: var(--edge-dead); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Percolation: delete edges each second with probability <em>p</em></h1>
+    <div class="controls">
+      <div class="control">
+        <label>Probability p (delete per edge per second): <span id="pVal">0.20</span></label>
+        <input id="p" type="range" min="0" max="1" step="0.01" value="0.20" />
+      </div>
+      <div class="control">
+        <label>Depth</label>
+        <input id="depth" type="number" min="1" max="10" step="1" value="6" />
+      </div>
+      <div class="control">
+        <label>Base radius (px)</label>
+        <input id="radius" type="number" min="50" max="2000" step="10" value="360" />
+      </div>
+      <div class="control">
+        <label>Tick (ms)</label>
+        <input id="tick" type="number" min="100" max="5000" step="100" value="1000" />
+      </div>
+      <button id="reset">Reset graph</button>
+      <button id="toggle">Start ▶</button>
+    </div>
+  </header>
+
+  <div id="wrap">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <div class="zoom-controls" aria-hidden="false">
+    <button id="zoomIn" title="Zoom in">+</button>
+    <button id="zoomOut" title="Zoom out">−</button>
+    <button id="resetZoom" title="Reset zoom">⤢</button>
+  </div>
+
+  <footer>
+    <div class="legend">
+      <span class="chip"><span class="dot"></span> alive edge</span>
+      <span class="chip"><span class="dot dead"></span> deleted edge</span>
+    </div>
+  </footer>
+
+  <script>
+    // --- Math helpers ---
+    const SQ3 = Math.sqrt(3);
+    const pow = Math.pow;
+    function L_for(d) { const val = Math.round(SQ3 * (pow(2+SQ3, d-1) - pow(2-SQ3, d-1))); return Math.max(val, 1); }
+    function K_for(d) { return Math.round(SQ3 * (pow(2+SQ3, d) - pow(2-SQ3, d))); }
+
+    // Build edges (same logic as your TikZ)
+    function buildEdges(depth, Rpx) {
+      const edges = [];
+      for (let d = 1; d <= depth; d++) {
+        const l = L_for(d);
+        const k = K_for(d);
+        for (let x = 1; x <= k; x++) {
+          const thetaChild = (x / k) * Math.PI * 2;
+          const rParent = (1 - Math.pow(1/2, d-1)) * Rpx;
+          const rChild  = (1 - Math.pow(1/2, d  )) * Rpx;
+          const alphaIdx = Math.round((x / k) * l + 0.13684);
+          const betaIdx  = Math.round((x / k) * l - 0.13090);
+          const alpha = (alphaIdx / l) * Math.PI * 2;
+          const beta  = (betaIdx  / l) * Math.PI * 2;
+          edges.push({ d, a:{ r:rParent, t:alpha }, b:{ r:rChild, t:thetaChild }, alive:true });
+          if (alphaIdx !== betaIdx) edges.push({ d, a:{ r:rParent, t:beta  }, b:{ r:rChild, t:thetaChild }, alive:true });
+        }
+      }
+      return edges;
+    }
+
+    // --- DOM & state ---
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const wrap = document.getElementById('wrap');
+
+    const pSlider = document.getElementById('p');
+    const pVal = document.getElementById('pVal');
+    const depthInp = document.getElementById('depth');
+    const radiusInp = document.getElementById('radius');
+    const tickInp = document.getElementById('tick');
+    const resetBtn = document.getElementById('reset');
+    const toggleBtn = document.getElementById('toggle');
+    const zoomInBtn = document.getElementById('zoomIn');
+    const zoomOutBtn = document.getElementById('zoomOut');
+    const resetZoomBtn = document.getElementById('resetZoom');
+
+    let edges = [];
+    let running = false;
+    let timer = null;
+    let scale = 1;
+
+    pSlider.addEventListener('input', () => { pVal.textContent = Number(pSlider.value).toFixed(2); });
+    resetBtn.addEventListener('click', resetGraph);
+    toggleBtn.addEventListener('click', () => { running ? stop() : start(); });
+
+    // zoom buttons
+    zoomInBtn.addEventListener('click', () => zoomAtViewportCenter(1.2));
+    zoomOutBtn.addEventListener('click', () => zoomAtViewportCenter(0.8));
+    resetZoomBtn.addEventListener('click', resetZoom);
+
+    // adapt the wrap height to fill the middle area
+    function sizeWrapToViewport() {
+      const headerH = document.querySelector('header').offsetHeight;
+      const footerH = document.querySelector('footer').offsetHeight;
+      const h = Math.max(window.innerHeight - headerH - footerH, 200);
+      wrap.style.height = h + 'px';
+    }
+    window.addEventListener('resize', () => { sizeWrapToViewport(); });
+
+    function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+    // set canvas sized to content (CSS + backing store kept equal for simplicity)
+    function setCanvasSize(px) {
+      canvas.style.width = px + 'px';
+      canvas.style.height = px + 'px';
+      canvas.width = px;
+      canvas.height = px;
+    }
+
+    // Build edges and size the canvas so the entire graph fits on the canvas (with padding)
+    function resetGraph() {
+      const depth = clamp(parseInt(depthInp.value || '6', 10), 1, 10);
+      const baseR = clamp(parseInt(radiusInp.value || '360', 10), 50, 2000);
+      edges = buildEdges(depth, baseR);
+      stop();
+      const size = Math.ceil(baseR * 2 + 128); // ensure padding
+      sizeWrapToViewport();
+      setCanvasSize(size);
+      scale = 1; // reset zoom
+      draw();
+      centerView();
+    }
+
+    function start() {
+      const tick = clamp(parseInt(tickInp.value || '1000', 10), 50, 10000);
+      if (timer) clearInterval(timer);
+      timer = setInterval(stepDeletion, tick);
+      running = true; toggleBtn.textContent = 'Pause ❚❚';
+    }
+    function stop() { if (timer) clearInterval(timer); timer = null; running = false; toggleBtn.textContent = 'Start ▶'; }
+
+    function stepDeletion() {
+      const p = Number(pSlider.value);
+      for (const e of edges) if (e.alive && Math.random() < p) e.alive = false;
+      draw();
+    }
+
+    function polarToXY(r, theta) { return { x: r * Math.cos(theta), y: r * Math.sin(theta) }; }
+
+    function draw() {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.save();
+      // clear in backing-store pixels
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+
+      // apply zoom and center translation (origin at canvas center)
+      ctx.translate(w/2, h/2);
+      ctx.scale(scale, scale);
+
+      const depths = new Set(edges.map(e => e.d));
+      const maxD = depths.size ? Math.max(...depths) : 0;
+      const baseR = inferBaseRadiusFromEdges();
+      for (let d = 1; d <= maxD; d++) {
+        const r = (1 - Math.pow(1/2, d)) * baseR;
+        ctx.beginPath();
+        ctx.arc(0,0,r,0,Math.PI*2);
+        ctx.lineWidth = 1/scale;
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.stroke();
+      }
+
+      const dead = edges.filter(e => !e.alive);
+      const alive = edges.filter(e =>  e.alive);
+      drawEdgeList(dead, false);
+      drawEdgeList(alive, true);
+      ctx.restore();
+    }
+
+    function inferBaseRadiusFromEdges() {
+      if (!edges.length) return 360;
+      let maxR = 0, maxD = 1;
+      for (const e of edges) { if (e.b.r > maxR) { maxR = e.b.r; maxD = e.d; } }
+      return maxR / (1 - Math.pow(1/2, maxD));
+    }
+
+    function drawEdgeList(list, isAlive) {
+      ctx.lineWidth = isAlive ? 2/scale : 1.5/scale;
+      ctx.strokeStyle = isAlive ? getComputedStyle(document.documentElement).getPropertyValue('--accent') : getComputedStyle(document.documentElement).getPropertyValue('--edge-dead');
+      ctx.beginPath();
+      for (const e of list) {
+        const A = polarToXY(e.a.r, e.a.t);
+        const B = polarToXY(e.b.r, e.b.t);
+        ctx.moveTo(A.x, A.y);
+        ctx.lineTo(B.x, B.y);
+      }
+      ctx.stroke();
+    }
+
+    // Keep the visible center's content point fixed while changing scale
+    function clampScroll(left, top) {
+      const maxLeft = Math.max(0, canvas.clientWidth - wrap.clientWidth);
+      const maxTop  = Math.max(0, canvas.clientHeight - wrap.clientHeight);
+      const L = Math.max(0, Math.min(left, maxLeft));
+      const T = Math.max(0, Math.min(top,  maxTop ));
+      wrap.scrollLeft = L; wrap.scrollTop = T;
+    }
+
+    function zoomAtViewportCenter(factor) {
+      const oldScale = scale;
+      const newScale = clamp(scale * factor, 0.05, 20);
+      if (newScale === oldScale) return;
+
+      // viewport center in canvas CSS coords
+      const vpX = wrap.scrollLeft + wrap.clientWidth/2;
+      const vpY = wrap.scrollTop  + wrap.clientHeight/2;
+      const cx = canvas.clientWidth/2;
+      const cy = canvas.clientHeight/2;
+
+      // coordinates of the content point (in un-scaled content units) that currently sits at vp center
+      const relX = (vpX - cx) / oldScale;
+      const relY = (vpY - cy) / oldScale;
+
+      // apply new scale and redraw
+      scale = newScale;
+      draw();
+
+      // figure out where that content point moved to and adjust scroll so it returns to center
+      const newPosX = cx + relX * newScale;
+      const newPosY = cy + relY * newScale;
+      const deltaX = newPosX - vpX;
+      const deltaY = newPosY - vpY;
+
+      clampScroll(wrap.scrollLeft + deltaX, wrap.scrollTop + deltaY);
+    }
+
+    function resetZoom() {
+      const oldScale = scale;
+      if (oldScale === 1) return;
+      const vpX = wrap.scrollLeft + wrap.clientWidth/2;
+      const vpY = wrap.scrollTop  + wrap.clientHeight/2;
+      const cx = canvas.clientWidth/2;
+      const cy = canvas.clientHeight/2;
+      const relX = (vpX - cx) / oldScale;
+      const relY = (vpY - cy) / oldScale;
+      scale = 1; draw();
+      const newPosX = cx + relX * scale;
+      const newPosY = cy + relY * scale;
+      clampScroll(wrap.scrollLeft + (newPosX - vpX), wrap.scrollTop + (newPosY - vpY));
+    }
+
+    // keyboard zoom: + (or =) and -; ignore if typing into inputs
+    window.addEventListener('keydown', (e) => {
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+      if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd') { e.preventDefault(); zoomAtViewportCenter(1.15); }
+      else if (e.key === '-' || e.code === 'NumpadSubtract') { e.preventDefault(); zoomAtViewportCenter(0.85); }
+    });
+
+    // wheel: only zoom if ctrl/cmd is held (otherwise wheel will scroll the pane)
+    wrap.addEventListener('wheel', (ev) => {
+      if (ev.ctrlKey || ev.metaKey) {
+        ev.preventDefault();
+        const factor = ev.deltaY < 0 ? 1.08 : 0.92;
+        zoomAtViewportCenter(factor);
+      }
+    }, { passive:false });
+
+    function centerView() {
+      clampScroll((canvas.clientWidth - wrap.clientWidth)/2, (canvas.clientHeight - wrap.clientHeight)/2);
+    }
+
+    // --- Boot ---
+    resetGraph();
+  </script>
+</body>
+</html>
