@@ -31,7 +31,21 @@ MathJax.Hub.Config({
     <hr /><h4 id='출판-전출판된-연구-논문'><span>출판 전/출판된 연구 논문 (논문 제목을 클릭하면 세부 내용이 표시됩니다)</span></h4>
 
  <ol reversed>
+     <p style="color: grey;"><span onclick="UnfinishedClick()">What I'm really up to nowadays(drafts available upon request)</span></p>
+     <div id="Unfinished" style="color: grey; display: none;">
+         <ul> <li><span>something about horocycles with Dongryul M. Kim.</spna></li> <li> <span> something about Poisson boundary with Antoine Goldsborough and Giulio Tiozzo.</span></li> <li><span>something about boundary and confined subgroups with Ilya Gekhtman and Keivan Mallahi-Karai. </span></li> <li><span>something about counting with Ritwik Chakraborty and Biswajit Nag.  </span></li></ul></div>
 
+
+<script>
+function UnfinishedClick() {
+  var x = document.getElementById("Unfinished");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
 
 <li><p><span onclick="PercolationClick()">Percolation in acylindrically hyperbolic groups</span><br>
     <span></span><a href="https://www.seodonggyun.com"><span>서동균 박사님</span></a><span>과 공저 </span><br>
@@ -486,8 +500,9 @@ function randomSullivanClick() {
         <ul>
 
             <li><span>2026.03.23. 제목 미정, 영국 워릭 대학교.</span></li>
-            <li><span>2025.10.13. 제목 미정, 고등과학원. </span></li>
-            <li><span>2025.10.01. 제목 미정, </span><span>폴란드 크라쿠프의 Jagiellonian 대학교.</span></li>
+            <li><span>2025.01.12. 제목 미정, </span><span><a href="https://pierogy.matinf.uj.edu.pl/home">PIEROGY</a></span><span>. 폴란드 크라쿠프의 Jagiellonian University.</span></li>
+            <li><span>2025.01.06. 제목 미정, 프랑스 마르세유.</span></li>
+            <li><span>2025.10.13. 제목 미정, </span><span><a href="https://sites.google.com/view/mcg-kias">Mapping class group at KIAS</a></span>. 고등과학원.</span></li>
             <li><span>2025.09.29. Nonuniqueness from percolation in acylindrically hyperbolic groups. </span><span>헝가리 부다페스트의 Renyi 연구소.</span></li>
             <li><span>2025.09.22. Nonuniqueness from percolation in acylindrically hyperbolic groups. </span><a href="https://www.uni-muenster.de/MathematicsMuenster/events/2025/probdyn-on-groups.shtml"><span>Autumn School on “Probability and Dynamics on Groups”</span></a><span>, 독일 뮌스터 대학교.</span></li>
             <li><span>2025.09.17. Metric WPD of pseudo-Anosov maps. </span><a href="https://sites.google.com/view/gds-paris/home"><span>Groups, Dynamics and Surfaces in Paris.</span></a><span> 프랑스 파리 소르본 대학교의 IMJ-PRG.</span></li>
@@ -695,6 +710,8 @@ function contracting4Click() {
     <hr />
     <h4><span>최근 및 예정된 학술 방문</span></h4>교
     <ul><li><span>2026.03.23-2026.03.26. 영국 워릭 대학교.</span></li>
+        <li><span>2026.01.12-2026.01.16. 폴란드 크라쿠프의 Jagiellonian 대학.</span></li>
+        <li><span>2026.01.06-2026.01.08. 프랑스 마르세유.</span></li>
         <li><span>2025.09.30-2025.10.02. 폴란드 크라쿠프의 Jagiellonian 대학.</span></li>
         <li><span>2025.09.28-2025.09.30. 헝가리 부다페스트의 Renyi 연구소.</span></li>
         <li><span>2025.09.22-2025.09.26. 독일 뮌스터 대학교.</span></li>

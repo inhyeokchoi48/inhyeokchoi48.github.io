@@ -32,6 +32,23 @@ MathJax.Hub.Config({
  <hr /><h4><span>Research papers for publication (Click each title for a brief summary)</span></h4>
  <ol reversed >
 
+
+     <p style="color: grey;"><span onclick="UnfinishedClick()">What I'm really up to nowadays (drafts available upon request)</span></p>
+     <div id="Unfinished" style="color: grey; display: none;">
+         <ul> <li><span>something about horocycles with Dongryul M. Kim.</spna></li> <li> <span> something about Poisson boundary with Antoine Goldsborough and Giulio Tiozzo.</span></li> <li><span>something about boundary and confined subgroups with Ilya Gekhtman and Keivan Mallahi-Karai. </span></li> <li><span>something about counting with Ritwik Chakraborty and Biswajit Nag.  </span></li></ul></div>
+
+
+<script>
+function UnfinishedClick() {
+  var x = document.getElementById("Unfinished");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
 <li><p><span onclick="PercolationClick()">Percolation in acylindrically hyperbolic groups</span><br>
     <span>with </span><a href="https://www.seodonggyun.com"><span>Donggyun Seo</span></a><br>
     <a href="https://arxiv.org/abs/2508.08932"><span>arXiv:2508.08932</span></a><span> (2025)</span><br>
@@ -486,8 +503,9 @@ function randomSullivanClick() {
     <ul><li><h5><span>Upcoming</span></h5></li>
         <ul>
             <li><span>2026.03.23. TBA, University of Warwick, UK.</span></li>
-            <li><span>2025.10.13. TBA, KIAS, South Korea.</span></li>
-            <li><span>2025.10.01. TBA, </span><span>Jagiellonian University, Krakow, Poland.</span></li>
+            <li><span>2025.01.12. TBA, </span><span><a href="https://pierogy.matinf.uj.edu.pl/home">PIEROGY</a></span><span>. Jagiellonian University, Kraków, Poland.</span></li>
+            <li><span>2025.01.06. TBA, Marseille, France.</span></li>
+            <li><span>2025.10.13. TBA, </span><span><a href="https://sites.google.com/view/mcg-kias">Mapping class group at KIAS</a></span>. KIAS, South Korea.</span</li>
             <li><span>2025.09.29. Nonuniqueness from percolation in acylindrically hyperbolic groups. </span><span>Renyi Insitute, Hungary.</span></li>
             <li><span>2025.09.22. Nonuniqueness from percolation in acylindrically hyperbolic groups. </span><a href="https://www.uni-muenster.de/MathematicsMuenster/events/2025/probdyn-on-groups.shtml"><span>Autumn School on “Probability and Dynamics on Groups”</span></a><span>, University of Münster, Germany.</span></li>
             <li><span>2025.09.17. Metric WPD of pseudo-Anosov maps. </span><a href="https://sites.google.com/view/gds-paris/home"><span>Groups, Dynamics and Surfaces in Paris.</span></a><span> IMJ-PRG at Sorbonne, Paris, France.</span></li>
@@ -646,6 +664,8 @@ x.style.display = "none";
     <h4><span>Recent/Upcoming Academic trips</span></h4>
     <ul>
         <li><span>2026.03.23-2026.03.26. University of Warwick, UK.</span></li>
+        <li><span>2026.01.12-2026.01.16. Jagiellonian University, Kraków, Poland.</span></li>
+        <li><span>2026.01.06-2026.01.08. Marseille, France.</span></li>
         <li><span>2025.09.30-2025.10.02. Jagiellonian University, Kraków, Poland.</span></li>
         <li><span>2025.09.28-2025.09.30. Renyi Institute, Budapest, Hungary.</span></li>
         <li><span>2025.09.22-2025.09.26. University of Münster, Germany.</span></li>
