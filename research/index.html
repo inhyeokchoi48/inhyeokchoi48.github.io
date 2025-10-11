@@ -35,12 +35,33 @@ MathJax.Hub.Config({
 
      <p style="color: grey;"><span onclick="UnfinishedClick()">What I'm really up to nowadays (drafts available upon request)</span></p>
      <div id="Unfinished" style="color: grey; display: none;">
-         <ul> <li><span>something about horocycles with Dongryul M. Kim.</spna></li> <li> <span> something about Poisson boundary with Antoine Goldsborough and Giulio Tiozzo.</span></li> <li><span>something about boundary and confined subgroups with Ilya Gekhtman and Keivan Mallahi-Karai. </span></li> <li><span>something about counting with Ritwik Chakraborty and Biswajit Nag.  </span></li></ul></div>
+         <ul>  <li> <span> something about Poisson boundary with Antoine Goldsborough and Giulio Tiozzo.</span></li> <li><span>something about boundary and confined subgroups with Ilya Gekhtman and Keivan Mallahi-Karai. </span></li> <li><span>something about counting with Ritwik Chakraborty and Biswajit Nag.  </span></li></ul></div>
 
 
 <script>
 function UnfinishedClick() {
   var x = document.getElementById("Unfinished");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
+         <li><p><span onclick="MLClick()">Invariant measures on the space of measured laminations for subgroups of mapping class group</span><br>
+    <span>with </span><a href="https://gauss.math.yale.edu/~dk929/"><span>Dongryul M. Kim</span></a><br>
+         <a href='https://inhyeokchoi48.github.io/files/ML.pdf'><span>Draft</span></a><span> (2025)</span></p></li>
+
+<div id="ML" style="display:none">
+ <ul><li><p>For each non-elementary subgroup of the mapping class group, we define a region on the space of measured laminations. This region is meant to be where the subgroup exhibits an interesting dynamics. We then the subgroup admits an ergodic invariant locally finite measure on the space of measured laminations that is supported on this region. Such a measure is furthermore essentially unique if the subgroup was of divergence type. This is a generalization of the result by E. Lindenstrauss and M. Mirzakhani, and by U. Hamenstädt, about the full mapping class group.
+ </li></ul>
+</div>
+
+
+<script>
+function MLClick() {
+  var x = document.getElementById("ML");
   if (x.style.display === "none") {
     x.style.display = "block";
   } else {
