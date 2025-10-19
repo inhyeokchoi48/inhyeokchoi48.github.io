@@ -47,6 +47,29 @@ function UnfinishedClick() {
 }
 </script>
 
+
+
+         <li><p><span onclick="ProductClick()">PRODUCT</span><br>
+    <a href="https://gauss.math.yale.edu/~dk929/"><span>김동률 씨</span></a><span>와 공저</span><br>
+         <span> (2025)</span></p></li>
+
+<div id="Product" style="display:none">
+ <ul><li><p>푸라닭에 관한 논문입니다.
+ </li></ul>
+</div>
+
+
+<script>
+function ProductClick() {
+  var x = document.getElementById("Product");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
             <li><p><span onclick="MLClick()">Invariant measures on the space of measured laminations for subgroups of mapping class group</span><br>
     <a href="https://gauss.math.yale.edu/~dk929/"><span>김동률 씨</span></a><span>와 공저</span><br>
          <a href='https://inhyeokchoi48.github.io/files/ML.pdf'><span>초안</span></a><span> (2025)</span></p></li>
