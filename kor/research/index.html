@@ -566,10 +566,17 @@ function randomSullivanClick() {
     <hr /><h4><span>발표 (과거 발표는 각 연도를 클릭하면 볼 수 있습니다)</span></h4>
     <ul><li><h5><span>예정된 발표</span></h5></li>
         <ul>
-
+            <li><span>2026.??.??. TBA. McGill Geometric Group Theory seminar. 캐나다 퀘벡 몬트리올의 McGill University.</span></li>
+            <li><span>2026.??.??. TBA. OSU Topology Seminar. 미국 오하이오 컬럼버스의 Ohio State University.</span></li>
             <li><span>2026.01.20. Regularity of the escape rate and the asymptotic entropy for negatively curved groups. Probability Workshop in Korea 2026. 전주.</span></li>
             <li><span>2025.01.12. Invariant measures for subgroups of mapping class groups and Anosov groups. </span><span><a href="https://pierogy.matinf.uj.edu.pl/home">PIEROGY</a></span><span>. 폴란드 크라쿠프의 Jagiellonian University.</span></li>
-            <li><span>2025.01.06. Exponential synchronization on the circle. France-Korea workshop on Dynamical Group Theory. 프랑스 마르세유의 Aix-Marseille Université.</span></li>
+            <li><span>2025.01.06. Exponential synchronization on the circle. France-Korea workshop on Dynamical Group Theory. 프랑스 마르세유의 Aix-Marseille Université.</span></li></ul>
+
+
+        <li><h5><span onclick="talk2025Click()">2025</span><span> / </span></span><span onclick="talk2024Click()">2024</span><span> / </span><span onclick="talk2023Click()">2023</span><span> / </span><span onclick="talk2022Click()">2022</span><span> / </span><span onclick="talk2021Click()">2021</span><span> / </span><span onclick="talk2020Click()">2020</span></h5></li>
+    <div id="talk2025" style="display:none">
+        <hr />
+        <ul>
             <li><span>2025.11.19. Statistics in negatively curved groups. KIAS Math-HCMC Fall Workshop 2025. 정선.</span></li>
             <li><span>2025.10.13. Locally finite invariant measures on measured laminations. </span><span><a href="https://sites.google.com/view/mcg-kias">Mapping class group at KIAS</a></span>. 고등과학원.</span></li>
             <li><span>2025.09.29. Nonuniqueness from percolation in acylindrically hyperbolic groups. </span><span>헝가리 부다페스트의 Renyi 연구소.</span></li>
@@ -589,10 +596,20 @@ function randomSullivanClick() {
             <li><span>2025.01.16. Free discrete subgroups of Homeo(S) and the fine curve graph. Virtual Seminar on Geometry and Topology. 고등과학원.</span></li>
 </ul>
 
+      </div>
+
+<script>
+function talk2025Click() {
+var x = document.getElementById("talk2025");
+if (x.style.display === "none") {
+x.style.display = "block";
+} else {
+x.style.display = "none";
+}
+}
+</script>
 
 
-
-    <li><h5><span onclick="talk2024Click()">2024</span><span> / </span><span onclick="talk2023Click()">2023</span><span> / </span><span onclick="talk2022Click()">2022</span><span> / </span><span onclick="talk2021Click()">2021</span><span> / </span><span onclick="talk2020Click()">2020</span></h5></li>
     <div id="talk2024" style="display:none">
         <hr />
         <ul>

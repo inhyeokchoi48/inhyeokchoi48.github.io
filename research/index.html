@@ -566,9 +566,17 @@ function randomSullivanClick() {
     <hr /><h4><span>Talks (Click the years below to see previous talks)</span></h4>
     <ul><li><h5><span>Upcoming</span></h5></li>
         <ul>
+            <li><span>2026.??.??. TBA. McGill Geometric Group Theory seminar. McGill University, Montréal, Quebec, CA.</span></li>
+            <li><span>2026.??.??. TBA. OSU Topology Seminar. Ohio State University, Columbus, OH, USA.</span></li>
             <li><span>2026.01.20. Regularity of the escape rate and the asymptotic entropy for negatively curved groups. Probability Workshop in Korea 2026. Jeonju, South Korea.</span></li>
             <li><span>2025.01.12. Invariant measures for subgroups of mapping class groups and Anosov groups. </span><span><a href="https://pierogy.matinf.uj.edu.pl/home">PIEROGY</a></span><span>. Jagiellonian University, Kraków, Poland.</span></li>
-            <li><span>2025.01.06. Exponential synchronization on the circle. France-Korea workshop on Dynamical Group Theory. Aix-Marseille Université, France.</span></li>
+            <li><span>2025.01.06. Exponential synchronization on the circle. France-Korea workshop on Dynamical Group Theory. Aix-Marseille Université, France.</span></li></ul>
+
+
+        <li><h5><span onclick="talk2025Click()">2025</span><span> / </span></span><span onclick="talk2024Click()">2024</span><span> / </span><span onclick="talk2023Click()">2023</span><span> / </span><span onclick="talk2022Click()">2022</span><span> / </span><span onclick="talk2021Click()">2021</span><span> / </span><span onclick="talk2020Click()">2020</span></h5></li>
+    <div id="talk2025" style="display:none">
+        <hr />
+        <ul>
             <li><span>2025.11.19. Statistics in negatively curved groups. KIAS Math-HCMC Fall Workshop 2025. Jeongseon, South Korea.</span></li>
             <li><span>2025.10.13. Locally finite invariant measures on measured laminations. </span><span><a href="https://sites.google.com/view/mcg-kias">Mapping class group at KIAS</a></span><span>. KIAS, South Korea.</span></li>
             <li><span>2025.09.29. Nonuniqueness from percolation in acylindrically hyperbolic groups. </span><span>Renyi Insitute, Hungary.</span></li>
@@ -588,8 +596,20 @@ function randomSullivanClick() {
             <li><span>2025.01.16. Free discrete subgroups of Homeo(S) and the fine curve graph. Virtual Seminar in Geometry & Topology, South Korea.</span></li>
 </ul>
 
+ </div>
 
-    <li><h5><span onclick="talk2024Click()">2024</span><span> / </span><span onclick="talk2023Click()">2023</span><span> / </span><span onclick="talk2022Click()">2022</span><span> / </span><span onclick="talk2021Click()">2021</span><span> / </span><span onclick="talk2020Click()">2020</span></h5></li>
+<script>
+function talk2025Click() {
+var x = document.getElementById("talk2025");
+if (x.style.display === "none") {
+x.style.display = "block";
+} else {
+x.style.display = "none";
+}
+}
+</script>
+
+
     <div id="talk2024" style="display:none">
 
         <hr />
