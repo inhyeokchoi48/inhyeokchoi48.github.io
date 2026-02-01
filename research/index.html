@@ -49,6 +49,26 @@ function UnfinishedClick() {
 }
 </script>
 
+
+         <li><p><span onclick="HigherHoroClick()">Classification of horospherical invariant measures in higher rank: full story</span><br>
+    <span>with </span><a href="https://dongryulkim.github.io"><span>Dongryul M. Kim</span></a><span>, </span><a href='https://inhyeokchoi48.github.io/files/higher_main.pdf'><span>pdf</span></a></p></li>
+
+<div id="HigherHoro" style="display:none">
+ <ul><li><p>This is an generalization of [V] from products of rank-1 symmetric spaces into general higher rank symmetric spaces. Given an Anosov group $\Gamma$ acting on a product of rank-1 symmetric spaces, we classify $\Gamma$-invariant measures on the horospherical foliation that are supported on the recurrence locus. This is a companion paper of paper no. 21.
+ </li></ul>
+</div>
+
+     <script>
+function HigherHoroClick() {
+  var x = document.getElementById("HigherHoro");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
          <li><p><span onclick="MyrbergClick()">Divergence-type semigroups in Kleinian groups and Hausdorff dimension</span><br>
              <a href="http://arxiv.org/abs/2512.02829"><span>arXiv:2512.02829</span></a><span> (2025) </span></p></li>
 
@@ -68,27 +88,8 @@ function MyrbergClick() {
   }
 }
 </script>
-         <li><p><span onclick="ProductClick()">Classification of horospherical invariant measures in higher rank</span><br>
-    <span>with </span><a href="https://dongryulkim.github.io"><span>Dongryul M. Kim</span></a><br>
-    <a href="https://arxiv.org/abs/2510.23365"><span>arXiv:2510.23365</span></a><span> (2025), </span>
-         <a href='https://inhyeokchoi48.github.io/files/higher.pdf'><span>Version with a quote</span></a></p></li>
-
-<div id="Product" style="display:none">
- <ul><li><p>Given an Anosov group $\Gamma$ acting on a product of rank-1 symmetric spaces, we classify $\Gamma$-invariant measures on the horospherical foliation that are supported on the recurrence locus. This is a companion paper of paper no. 21. Fun fact: the authors call this paper POORADARK(푸라닭).
- </li></ul>
-</div>
 
 
-<script>
-function ProductClick() {
-  var x = document.getElementById("Product");
-  if (x.style.display === "none") {
-    x.style.display = "block";
-  } else {
-    x.style.display = "none";
-  }
-}
-</script>
          <li><p><span onclick="MLClick()">Invariant measures on the space of measured laminations for subgroups of mapping class group</span><br>
     <span>with </span><a href="https://dongryulkim.github.io"><span>Dongryul M. Kim</span></a><br>
           <a href="https://arxiv.org/abs/2510.23256"><span>arXiv:2510.23256</span></a><span> (2025)</span></p></li>
@@ -501,7 +502,30 @@ function pAClick() {
 
  <hr /><h4 id='preprints-and-publications'><span>Other Writings</span></h4>
     <ol type="I"reversed>
-        <li><p><span onclick="catPercClick()">CAT(0) 큐브 기하학과 삼투 현상 (CAT(0) cubical geometry and percolation, in Korean). (</span><a href='https://inhyeokchoi48.github.io/files/CATPerc.pdf'><span>pdf</span></a><span>)</span></li>
+
+
+         <li><p><span onclick="ProductClick()">Classification of horospherical invariant measures in higher rank: teaser</span><br>
+    <a href="dongryulkim.github.io"><span>김동률 씨</span></a><span>와 공저</span><br>
+    <a href="https://arxiv.org/abs/2510.23365"><span>arXiv:2510.23365</span></a><span> (2025)</span></p></li>
+
+<div id="Product" style="display:none">
+ <ul><li><p>This is a teaser of [23], specializing in the case of products of rank-1 symmetric spaces. Given an Anosov group $\Gamma$ acting on a product of rank-1 symmetric spaces, we classify $\Gamma$-invariant measures on the horospherical foliation that are supported on the $\Gamma$-recurrence locus. This is a companion paper of paper no. 21.
+ </li></ul>
+</div>
+
+     <script>
+function ProductClick() {
+  var x = document.getElementById("Product");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
+
+        <li><p><span onclick="catPercClick()">CAT(0) 큐브 기하학과 삼투 현상 (CAT(0) cubical geometry and percolation, in Korean). (</span><a href='https://inhyeokchoi48.github.io/files/CATPerc.pdf'><span>pdf</span></a><span>, </span><a href='https://inhyeokchoi48.github.io/files/CATPerc_jp.pdf'><span>和訳（まだ完全に不完全）</span></a><span>)</span></li>
 
 <div id="catPerc" style="display:none">
  <ul>

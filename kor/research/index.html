@@ -46,7 +46,26 @@ function UnfinishedClick() {
   }
 }
 </script>
+ <li><p><span onclick="HigherHoroClick()">Classification of horospherical invariant measures in higher rank: full sotry</span><br>
+    <a href="dongryulkim.github.io"><span>김동률 씨</span></a><span>와 공저, </span><a href='https://inhyeokchoi48.github.io/files/higher_main.pdf'><span>pdf</span></a> </p></li>
 
+<div id="HigherHoro" style="display:none">
+ <ul><li><p>이 논문은 랭크 1 대칭공간의 곱에 관한 [V]의 논문을 일반적인 고차수 대칭공간에 관한 것으로 확장한 것이다. Anosov group 혹은 상대적인 Anosov group $\Gamma$가 주어졌을 때, horospherical foliation 위의 $\Gamma$-불변인 측도 중 $\Gamma$-recurrence locus에 집중된 측도를 모두 분류하는 것이 이 논문의 목표다. 21번 논문과 짝꿍이라고 볼 수 있다.
+ </p>
+ </li></ul>
+</div>
+
+
+<script>
+function HigherHoroClick() {
+  var x = document.getElementById("HigherHoro");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
 
          <li><span onclick="MyrbergClick()">Divergence-type semigroups in Kleinian groups and Hausdorff dimension</span><br>
              <a href="http://arxiv.org/abs/2512.02829"><span>arXiv:2512.02829</span></a><span> (2025) </span></p></li>
@@ -68,28 +87,7 @@ function MyrbergClick() {
 }
 </script>
 
-         <li><p><span onclick="ProductClick()">Classification of horospherical invariant measures in higher rank</span><br>
-    <a href="dongryulkim.github.io"><span>김동률 씨</span></a><span>와 공저</span><br>
-    <a href="https://arxiv.org/abs/2510.23365"><span>arXiv:2510.23365</span></a><span> (2025), </span>
-         <a href='https://inhyeokchoi48.github.io/files/higher.pdf'><span>시(詩)를 곁들인 버전</span></a></p></li>
 
-<div id="Product" style="display:none">
- <ul><li><p>푸라닭에 관한 논문이다.<br> 랭크 1인 대칭공간(symmetric space)의 푸라닭(direct product) 공간에 작용하는 Anosov group $\Gamma$가 주어졌을 때, horospherical foliation 위의 $\Gamma$-불변인 측도 중 recurrence locus에 집중된 측도를 모두 분류하는 것이 이 논문의 목표다. 21번 논문과 짝꿍이라고 볼 수 있다.
- </p>
- </li></ul>
-</div>
-
-
-<script>
-function ProductClick() {
-  var x = document.getElementById("Product");
-  if (x.style.display === "none") {
-    x.style.display = "block";
-  } else {
-    x.style.display = "none";
-  }
-}
-</script>
 
             <li><p><span onclick="MLClick()">Invariant measures on the space of measured laminations for subgroups of mapping class group</span><br>
     <a href="dongryulkim.github.io"><span>김동률 씨</span></a><span>와 공저</span><br>
@@ -502,7 +500,29 @@ function contracting1Click() {
     <hr /><h4 id='preprints-and-publications'><span>그외 논문</span></h4>
     <ol type="I"reversed>
 
-        <li><p><span onclick="catPercClick()">CAT(0) 큐브 기하학과 삼투 현상. (</span><a href='https://inhyeokchoi48.github.io/files/CATPerc.pdf'><span>pdf</span></a><span>)</span></li>
+             <li><p><span onclick="ProductClick()">Classification of horospherical invariant measures in higher rank: teaser</span><br>
+    <a href="dongryulkim.github.io"><span>김동률 씨</span></a><span>와 공저</span><br>
+    <a href="https://arxiv.org/abs/2510.23365"><span>arXiv:2510.23365</span></a><span> (2025)</span>
+
+<div id="Product" style="display:none">
+ <ul><li><p>23번 논문을 특수례에 한정한 것으로, 푸라닭에 관한 논문이다.<br> 랭크 1인 대칭공간(symmetric space)의 푸라닭(direct product) 공간에 작용하는 Anosov group $\Gamma$가 주어졌을 때, horospherical foliation 위의 $\Gamma$-불변인 측도 중 $\Gamma$-recurrence locus에 집중된 측도를 모두 분류하는 것이 이 논문의 목표다. 21번 논문과 짝꿍이라고 볼 수 있다.
+ </p>
+ </li></ul>
+</div>
+
+
+<script>
+function ProductClick() {
+  var x = document.getElementById("Product");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
+        <li><p><span onclick="catPercClick()">CAT(0) 큐브 기하학과 삼투 현상. (</span><a href='https://inhyeokchoi48.github.io/files/CATPerc.pdf'><span>pdf</span></a>, </span><a href='https://inhyeokchoi48.github.io/files/CATPerc_jp.pdf'><span>和訳-まだ完全に不完全</span></a><span>)</span></li>
 
 <div id="catPerc" style="display:none">
  <ul>
