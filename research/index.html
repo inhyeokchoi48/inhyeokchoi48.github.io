@@ -505,7 +505,7 @@ function pAClick() {
 
 
          <li><p><span onclick="ProductClick()">Classification of horospherical invariant measures in higher rank: teaser</span><br>
-    <a href="dongryulkim.github.io"><span>김동률 씨</span></a><span>와 공저</span><br>
+    <span>with </span><a href="dongryulkim.github.io"><span>Dongryul M. Kim</span></a><span>.</span><br>
     <a href="https://arxiv.org/abs/2510.23365"><span>arXiv:2510.23365</span></a><span> (2025)</span></p></li>
 
 <div id="Product" style="display:none">
@@ -611,15 +611,37 @@ function randomSullivanClick() {
 
     <hr /><h4><span>Talks (Click the years below to see previous talks)</span></h4>
     <ul><li><h5><span>Upcoming</span></h5></li>
+    <ul>
+        <li><span>2026.03.11. TBA. McGill Geometric Group Theory seminar. McGill University, Montréal, QC, Canada.</span></li>
+        <li><span>2026.02.24. TBA. OSU Topology Seminar. Ohio State University, Columbus, OH, USA.</span></li>
+        <li><span>2026.02.18. Contracting properties and their dynamical consequences. TGS Seminar at SLMath. CA, USA.</span></li>
+        <li><span>2026.02.17. Counting problems on hyperbolic groups and beyond. UCSB Topology seminar, CA, USA.</span></li>
+
+    </ul>
+
+    <li><h5><span onclick="talk2026Click()">2026</span><span> / </span><span onclick="talk2025Click()">2025</span><span> / </span></span><span onclick="talk2024Click()">2024</span><span> / </span><span onclick="talk2023Click()">2023</span><span> / </span><span onclick="talk2022Click()">2022</span><span> / </span><span onclick="talk2021Click()">2021</span><span> / </span><span onclick="talk2020Click()">2020</span></h5></li>
+
+
+    <div id="talk2026" style="display:none">
+        <hr />
         <ul>
-            <li><span>2026.??.??. TBA. McGill Geometric Group Theory seminar. McGill University, Montréal, Quebec, CA.</span></li>
-            <li><span>2026.??.??. TBA. OSU Topology Seminar. Ohio State University, Columbus, OH, USA.</span></li>
             <li><span>2026.01.20. Regularity of the escape rate and the asymptotic entropy for negatively curved groups. Probability Workshop in Korea 2026. Jeonju, South Korea.</span></li>
-            <li><span>2025.01.12. Invariant measures for subgroups of mapping class groups and Anosov groups. </span><span><a href="https://pierogy.matinf.uj.edu.pl/home">PIEROGY</a></span><span>. Jagiellonian University, Kraków, Poland.</span></li>
-            <li><span>2025.01.06. Exponential synchronization on the circle. France-Korea workshop on Dynamical Group Theory. Aix-Marseille Université, France.</span></li></ul>
+            <li><span>2026.01.12. Invariant measures for subgroups of mapping class groups and Anosov groups. </span><span><a href="https://pierogy.matinf.uj.edu.pl/home">PIEROGY</a></span><span>. Jagiellonian University, Kraków, Poland.</span></li>
+            <li><span>2025.01.06. Exponential synchronization on the circle. France-Korea workshop on Dynamical Group Theory. Université d'Aix-Marseille, France.</span></li></ul>
 
+    </div>
 
-        <li><h5><span onclick="talk2025Click()">2025</span><span> / </span></span><span onclick="talk2024Click()">2024</span><span> / </span><span onclick="talk2023Click()">2023</span><span> / </span><span onclick="talk2022Click()">2022</span><span> / </span><span onclick="talk2021Click()">2021</span><span> / </span><span onclick="talk2020Click()">2020</span></h5></li>
+<script>
+function talk2026Click() {
+var x = document.getElementById("talk2026");
+if (x.style.display === "none") {
+x.style.display = "block";
+} else {
+x.style.display = "none";
+}
+}
+</script>
+
     <div id="talk2025" style="display:none">
         <hr />
         <ul>
@@ -794,7 +816,12 @@ x.style.display = "none";
     <hr />
     <h4><span>Recent/Upcoming Academic trips</span></h4>
     <ul>
+        <li><span>2026.03.10-2026.03.12. McGill University. Montréal, QC, Canada.</span></li>
+        <li><span>2026.02.22-2026.02.25. Ohio State University. Columbus, OH, USA.</span></li>
+        <li><span>2026.02.17-2026.02.18. UC Santa Barbara. CA, USA.</span></li>
         <li><span>2026.01.12-2026.01.16. Jagiellonian University, Kraków, Poland.</span></li>
+        <!--
+
         <li><span>2026.01.08-2026.01.11. Max-Planck Institute, Leipzig, Germany.</span></li>
         <li><span>2026.01.06-2026.01.08. Marseille, France.</span></li>
         <li><span>2025.09.30-2025.10.02. Jagiellonian University, Kraków, Poland.</span></li>
@@ -802,7 +829,7 @@ x.style.display = "none";
         <li><span>2025.09.22-2025.09.26. University of Münster, Germany.</span></li>
         <li><span>2025.09.17-2025.09.19. IMJ-PRG at Sorbonne, Paris, France.</span></li>
 
-        <!--
+
 
         <li><span>2025.08.18-2025.08.22. IMPAN, Warsaw, Poland.</span></li>
         <li><span>2025.06.16-2025.06.22. BICMR, Peking University, Beijing, China.</span></li>
