@@ -1,525 +1,1348 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Algorithm for Proposition 4.1.</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Free group tree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 12px; background:#fafafa; color:#111; }
-  h1 { font-size:18px; margin:0 0 8px 0; }
-  .container { display:flex; gap:16px; align-items:flex-start; }
-  .left { background:white; padding:12px; border-radius:12px; box-shadow:0 6px 18px rgba(20,20,40,0.06); }
-  .controls { margin-bottom:8px; display:flex; gap:8px; align-items:center; }
-  button { padding:8px 12px; border-radius:8px; border:1px solid #ddd; background:#fff; cursor:pointer; }
-  button.primary { background:#0b63ff; color:#fff; border-color:#0b63ff; }
-  button.danger { background:#ff4d6d; color:#fff; border-color:#ff4d6d; }
-  .panel { width:320px; padding:12px; background:#fff; border-radius:12px; box-shadow:0 6px 18px rgba(20,20,40,0.06); }
-  .lists { display:flex; gap:8px; margin-top:8px; }
-  .list { flex:1; padding:8px; border-radius:8px; border:1px dashed #eee; min-height:60px; font-size:13px; background:#fbfbff; }
-  .list h4 { margin:0 0 6px 0; font-size:12px; }
-  .svgWrap { width:1000px; height:640px; }
-  line.edge { stroke:#bbb; stroke-width:1.2; }
-  g.node { cursor:pointer; transition:transform .12s ease; }
-  circle.nodeCircle { r:16; fill:#fff; stroke:#2b2b2b; stroke-width:1; }
-  text.nodelabel { font-size:12px; text-anchor:middle; dominant-baseline:middle; pointer-events:none; }
-  .selected circle.nodeCircle { stroke:#0b63ff; stroke-width:2.2; box-shadow:0 2px 6px rgba(11,99,255,0.18); }
-  .selected text.nodelabel { fill:#0b63ff; font-weight:600; }
-  line.edge.shaded-good {
-  stroke: #1a9b41;
-  stroke-width: 5;
-  stroke-opacity: 0.6;
-  transition: stroke 0.3s ease;
-}
-line.edge.shaded-bad {
-  stroke: #c72b2b;
-  stroke-width: 3;
-  stroke-opacity: 0.6;
-}
-line.edge.shaded-aux {
-  stroke: #c99b28;
-  stroke-width: 3;
-  stroke-opacity: 0.6;
-}
+  :root {
+    --paper: #E9EDF2; --disc: #FFFFFF; --ink: #1F2A44; --muted: #5B6884;
+    --grid: #B3BFD3; --grid-strong: #7387AC; --point: #C2185B; --line: #CBD3E0;
+    --yay: #1E5BD8; --uh: #D7263D; --hs1: #E09A00; --hs2: #12937F; --flash: #6F82A8;
+    --black: #000000; --gray: #8C93A3; --white-ring: #1FA05A; --lineage: #F2A2C0;
+    --hull: #0E8C7A; --shape: #7B4FD6;
+    --serif: "EB Garamond", Garamond, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #121628; --disc: #1B2137; --ink: #DCE3F2; --muted: #9AA6C2;
+      --grid: #343E5E; --grid-strong: #5A6D9C; --point: #FF5C93; --line: #2C3452;
+      --yay: #6EA0FF; --uh: #FF6B6B; --hs1: #FFB928; --hs2: #34C9AE; --flash: #8EA2D4;
+      --black: #F2F4FA; --gray: #7D8597; --white-ring: #3DDC84; --lineage: #C77393;
+      --hull: #34C9AE; --shape: #A98BFF;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #121628; --disc: #1B2137; --ink: #DCE3F2; --muted: #9AA6C2;
+    --grid: #343E5E; --grid-strong: #5A6D9C; --point: #FF5C93; --line: #2C3452;
+    --yay: #6EA0FF; --uh: #FF6B6B; --hs1: #FFB928; --hs2: #34C9AE; --flash: #8EA2D4;
+    --black: #F2F4FA; --gray: #7D8597; --white-ring: #3DDC84; --lineage: #C77393;
+    --hull: #34C9AE; --shape: #A98BFF;
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body { margin: 0; height: 100%; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 15px; line-height: 1.5; }
+  /* minmax(0, 1fr) keeps the canvas's pixel size from widening the column (the Safari overflow) */
+  .app { display: grid; grid-template-columns: minmax(0, 1fr) 340px; grid-template-rows: minmax(0, 1fr); height: 100%; min-height: 0; }
+  .stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+  canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  canvas.dragging { cursor: grabbing; }
+  canvas.adding { cursor: crosshair; }
+  canvas.busy { cursor: progress; }
+  aside { border-left: 1px solid var(--line); padding: 28px 24px; overflow-y: auto; min-width: 0;
+    display: flex; flex-direction: column; gap: 18px; }
+  h1 { font-family: var(--serif); font-weight: 400; font-size: 32px; line-height: 1.1; margin: 0; letter-spacing: -0.01em; }
+  h2 { font-family: var(--serif); font-weight: 500; font-size: 21px; margin: 0 0 4px; }
+  h3 { font-family: var(--serif); font-weight: 500; font-size: 17px; margin: 0; }
+  p { margin: 0; color: var(--muted); max-width: 60ch; }
+  kbd { font-family: var(--sans); font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 0 5px; color: var(--ink); }
+  .section { display: flex; flex-direction: column; gap: 12px; }
+  .example { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+  .buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+  button { font: inherit; font-size: 14px; color: var(--ink); background: transparent;
+    border: 1px solid var(--grid-strong); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+  button:hover:not(:disabled) { background: var(--disc); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--point); outline-offset: 2px; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  button.primary:hover:not(:disabled) { background: var(--ink); opacity: 0.88; }
+  button.toggle[aria-pressed="true"] { background: var(--point); border-color: var(--point); color: #fff; }
+  .seg { display: inline-flex; border: 1px solid var(--grid-strong); border-radius: 6px; overflow: hidden; align-self: flex-start; }
+  .seg button { border: 0; border-radius: 0; }
+  .seg button + button { border-left: 1px solid var(--grid-strong); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .params { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+  label.f { display: flex; flex-direction: column; gap: 3px; font-size: 13px; color: var(--muted); }
+  input[type="number"] { font: inherit; font-size: 14px; width: 100%; padding: 5px 8px; color: var(--ink);
+    background: var(--disc); border: 1px solid var(--line); border-radius: 6px; }
+  ol { margin: 0; padding: 0; list-style: none; font-variant-numeric: tabular-nums; font-size: 14px; }
+  li { display: flex; justify-content: space-between; gap: 8px; padding: 3px 4px; border-bottom: 1px solid var(--line); }
+  li .id { color: var(--point); font-weight: 500; min-width: 3em; }
+  .yay { color: var(--yay); font-weight: 500; }
+  .uh { color: var(--uh); font-weight: 500; }
+  .und { color: var(--gray); font-weight: 500; }
+  #list li[data-i] { cursor: pointer; border-radius: 4px; }
+  #list li[data-i]:hover { background: color-mix(in srgb, var(--disc) 80%, transparent); }
+  #list li[data-i]:focus-visible { outline: 2px solid var(--point); outline-offset: -2px; }
+  #list li.sel { background: color-mix(in srgb, var(--point) 14%, transparent); }
+  .note { font-size: 14px; }
+  .status { font-size: 14px; color: var(--ink); min-height: 1.5em; font-variant-numeric: tabular-nums; }
 
+  /* controls floating on the canvas: always on screen */
+  .modelbar { position: absolute; top: 12px; left: 12px; z-index: 2; display: flex; gap: 8px; flex-wrap: wrap; max-width: calc(100% - 24px); }
+  .modelbar .seg, .modelbar > button { background: var(--disc); }
+  .zoom { position: absolute; right: 16px; bottom: 52px; z-index: 2; display: flex; flex-direction: column; gap: 6px; }
+  .zoom button { width: 36px; height: 36px; padding: 0; font-size: 20px; line-height: 1; background: var(--disc); }
+  .banner { position: absolute; top: 62px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 1;
+    pointer-events: none; padding: 6px 16px; border-radius: 10px; background: rgba(233, 237, 242, 0.82); }
+  @media (prefers-color-scheme: dark) { .banner { background: rgba(18, 22, 40, 0.82); } }
+  .banner .big { font-family: var(--serif); font-size: 46px; line-height: 1.05; }
+  .banner .big:empty { display: none; }
+  .banner .small { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .banner.yay .big { color: var(--yay); }
+  .banner.uh .big { color: var(--uh); }
+  .banner.hold .big { color: var(--hs1); }
 
+  /* urns */
+  .urns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .urn { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .jar { position: relative; width: 100%; height: 140px; margin-top: 8px;
+    border: 2px solid var(--grid-strong); border-top: 0; border-radius: 6px 6px 28px 28px; padding: 6px 5px 10px; }
+  .jar::before { content: ""; position: absolute; top: -8px; left: -6px; right: -6px; height: 8px;
+    border: 2px solid var(--grid-strong); border-radius: 4px; background: var(--paper); }
+  .marbles { height: 100%; overflow-y: auto; display: flex; flex-wrap: wrap-reverse;
+    align-content: flex-start; justify-content: center; gap: 3px; }
+  .m { width: 20px; height: 20px; border-radius: 50%; font-size: 9.5px; font-weight: 500; color: #fff;
+    display: grid; place-items: center; font-variant-numeric: tabular-nums;
+    background: radial-gradient(circle at 34% 30%, rgba(255,255,255,0.6), rgba(255,255,255,0) 46%), var(--c);
+    animation: drop 0.35s ease-out; }
+  @keyframes drop { from { transform: translateY(-24px) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .m { animation: none; } }
+  .urn-label { font-family: var(--serif); font-size: 17px; }
+  .urn-label b { font-weight: 500; }
+  #urnB .m { --c: var(--uh); } #urnG .m { --c: var(--yay); } #urnU .m { --c: var(--gray); }
 
-  .shaded-good circle.nodeCircle { fill:#dff6e6; stroke:#1a9b41; stroke-width:1.6; }
-  .shaded-bad circle.nodeCircle { fill:#ffe3e6; stroke:#c72b2b; stroke-width:1.6; }
-  .shaded-aux circle.nodeCircle { fill:#fff7d9; stroke:#c99b28; stroke-width:1.6; }
-  .crossline { stroke:#c72b2b; stroke-width:2.5; stroke-linecap:round; }
-  /* blinking animation - implemented by toggling visibility */
-  .blink { animation: blinkAnim 0.9s linear infinite; }
-  @keyframes blinkAnim { 0% { opacity:1 } 50% { opacity:0.12 } 100% { opacity:1 } }
-  .nodeLabelSmall { font-size:10px; fill:#666; }
-  .legend { display:flex; gap:8px; margin-top:8px; font-size:12px; }
-  .legend div { display:flex; gap:6px; align-items:center; }
-  .legend span.box { width:18px; height:12px; display:inline-block; border-radius:4px; border:1px solid #ddd; }
+  [hidden] { display: none !important; }
+  @media (max-width: 760px) {
+    .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(360px, 62vh) auto; height: auto; }
+    .stage { height: 62vh; min-height: 360px; }
+    aside { border-left: 0; border-top: 1px solid var(--line); overflow: visible; }
+    .banner { top: 100px; }
+    .banner .big { font-size: 34px; }
+  }
 </style>
 </head>
 <body>
-  <h1>Interactive Binary Tree — click to select nodes (A)</h1>
-  <div class="container">
-    <div class="left">
-      <div class="controls">
-        <button id="resetBtn">Reset selections</button>
-        <button id="runBtn" class="primary">Run algorithm</button>
-        <button id="pauseBtn" class="danger" title="Pause/Resume run">Pause</button>
-        <div style="margin-left:8px; font-size:13px;color:#555;">Click nodes to toggle selection. Selected set = A.</div>
-      </div>
-
-      <div class="svgWrap" id="svgWrap"></div>
-
-      <div class="legend">
-        <div><span class="box" style="background:#dff6e6;border-color:#1a9b41"></span> good elements and the auxiliary regions</div>
-        <div><span class="box" style="background:#ffe3e6;border-color:#c72b2b"></span> bad elements</div>
-        <div><span class="box" style="background:#fff7d9;border-color:#c99b28"></span> undecided elements</div>
-        <div style="margin-left:12px;color:#666;font-size:12px;">Blink duration = 1.5s.</div>
-      </div>
+<div class="app">
+  <div class="stage">
+    <canvas id="c" aria-label="The Cayley graph of the free group on a and b. Drag to move the viewpoint along the tree, shift-click to add vertices, click a vertex to center it."></canvas>
+    <div class="modelbar">
+      <button class="toggle" id="hull" aria-pressed="false">Convex hull</button>
     </div>
-
-    <div class="panel">
-      <h3 style="margin:0 0 8px 0;">State</h3>
-      <div><strong>Selected A:</strong> <span id="Aview">∅</span></div>
-      <div class="lists">
-        <div class="list" id="goodList"><h4>Good</h4><div id="goodItems">—</div></div>
-        <div class="list" id="badList"><h4>Bad</h4><div id="badItems">—</div></div>
-        <div class="list" id="undecList"><h4>Undecided</h4><div id="undecItems">—</div></div>
-      </div>
-      <hr />
-      <div style="font-size:13px;color:#444;">
-        Two more undecided elements are formed when one bad element is formed.
-
-        The number of good elements and undecided elements is never less than the number of bad elements.
-
-        The final shaded regions are disjoint and are in 1-1 correspondence with the ancestral good nodes.
-      </div>
-    </div>
+    <div class="banner" id="banner" hidden><div class="big" id="bannerBig"></div><div class="small" id="bannerSmall"></div></div>
   </div>
-  <span>Code generated with aid of ChatGPT.</span>
-<p><a href='https://inhyeokchoi48.github.io/research'><span>Back to Inhyeok's Research page.</span></a></p>
+  <aside>
+    <h1>The tree of F<sub>2</sub> = &lang;a, b&rang;</h1>
+    <p class="note">The Cayley graph is drawn with a to the right and b upward; an edge at distance s from the viewpoint has length 2.5<sup>&minus;s</sup>, so the whole tree always fits in the tilted square. Drag to slide the viewpoint along the tree. Click a vertex, on the canvas or in the list, to center it. Words use A = a<sup>&minus;1</sup>, B = b<sup>&minus;1</sup>.</p>
+
+    <!-- Stage 1 -->
+    <div class="section" id="stage1">
+      <h2>Stage 1: choose A</h2>
+      <p class="note">Hold <kbd>Shift</kbd> and click to add the nearest vertex, or generate one of the examples below. Distances are word distances.</p>
+      <div class="buttons"><button class="toggle" id="mode" aria-pressed="false">Mode: manual</button></div>
+      <p class="note" id="modeHelp"></p>
+      <div class="params">
+        <label class="f" id="fN">Density N<input type="number" id="N" value="40" min="1" max="2000" step="1"></label>
+        <label class="f" id="fR">Range R<input type="number" id="R" value="4" min="1" max="200" step="1"></label>
+        <label class="f">Minimum spacing<input type="number" id="S" value="1" min="0" max="200" step="1"></label>
+      </div>
+      <div class="buttons">
+        <button id="reset">Reset view</button>
+        <button id="undo">Remove last point</button>
+        <button id="clear">Clear points</button>
+      </div>
+      <div class="example">
+        <h3>Example 1: a ball</h3>
+        <p class="note">A maximal R1-separated set of vertices in the ball of radius R2 about the vertex at the center of the view.</p>
+        <div class="params">
+          <label class="f">Separation R1<input type="number" id="e1R1" value="2" min="1" max="200" step="1"></label>
+          <label class="f">Radius R2<input type="number" id="e1R2" value="6" min="0" max="200" step="1"></label>
+        </div>
+        <div class="buttons"><button id="gen1">Generate ball</button></div>
+      </div>
+      <div class="example">
+        <h3>Example 2: k rays</h3>
+        <p class="note">A maximal R1-separated set in the R2-neighborhood of k geodesic rays of length L from the center vertex, spread as evenly as the tree allows and continuing straight.</p>
+        <div class="params">
+          <label class="f">Separation R1<input type="number" id="e2R1" value="2" min="1" max="200" step="1"></label>
+          <label class="f">Width R2<input type="number" id="e2R2" value="1" min="0" max="8" step="1"></label>
+          <label class="f">Rays k<input type="number" id="e2k" value="4" min="1" max="64" step="1"></label>
+          <label class="f">Length L<input type="number" id="e2L" value="50" min="0" max="200" step="1"></label>
+        </div>
+        <div class="buttons"><button id="gen2">Generate rays</button></div>
+      </div>
+      <div class="status" id="status1"></div>
+      <h2>Thin out and continue</h2>
+      <p class="note">Points are ordered by word length, then kept greedily if they are at least R′ from every point already kept. The kept set A′ replaces A.</p>
+      <div class="params"><label class="f">Thinning R′<input type="number" id="Rp" value="1" min="0" max="200" step="1"></label></div>
+      <div class="buttons"><button class="primary" id="next1">Next stage</button></div>
+    </div>
+
+    <!-- Stage 2 -->
+    <div class="section" id="stage2" hidden>
+      <h2>Stage 2: halfspace scan</h2>
+      <p class="note">A halfspace at distance D from P is the component of the tree minus an edge whose far end is at distance D from P. For each point of A′, the view moves to it and scans these halfspaces in clockwise order from the upward one: all of them when there are at most 100, otherwise the ones that contain points. It keeps the halfspace with the most points of A′ and the best other one; two different halfspaces at the same distance are always disjoint.</p>
+      <div class="params">
+        <label class="f">Distance D<input type="number" id="D" value="2" min="1" max="200" step="1"></label>
+        <label class="f">Tolerance K<input type="number" id="K" value="3" min="0" step="1"></label>
+        <label class="f">Flash per halfspace (ms)<input type="number" id="F" value="100" min="0" max="2000" step="10"></label>
+      </div>
+      <div class="buttons">
+        <button class="primary" id="start2">Start</button>
+        <button id="pause2" disabled>Pause</button>
+        <button id="skip2" disabled>Skip</button>
+        <button id="stop2" disabled>Stop</button>
+        <button id="reset2">Reset view</button>
+      </div>
+      <div class="status" id="status2"></div>
+      <div class="seg" role="group" aria-label="Show points">
+        <button id="fAll" aria-pressed="true">All</button>
+        <button id="fYay" aria-pressed="false">Blue only</button>
+        <button id="fUh" aria-pressed="false">Red only</button>
+      </div>
+      <div class="buttons">
+        <button id="back2">Back to selection</button>
+        <button class="primary" id="next2" disabled>Next stage</button>
+      </div>
+    </div>
+
+    <!-- Stage 3 -->
+    <div class="section" id="stage3" hidden>
+      <h2>Stage 3: sorting the red points</h2>
+      <p class="note">A″ is the set of red points, numbered by word length. Point 1 is the white anchor. Each point is sorted into an urn.</p>
+      <p class="note">With radius r &gt; 0, each halfspace H is replaced by H′ = H minus the r-neighborhood of its complement: the vertices of H at distance at least r from its nearest vertex. A direction toward a point closer than D continues straight past it.</p>
+      <div class="params">
+        <label class="f">Distance D<input type="number" id="D3" value="2" min="1" max="200" step="1"></label>
+        <label class="f">Radius r<input type="number" id="r3" value="0" min="0" max="200" step="1"></label>
+      </div>
+      <div class="buttons">
+        <button class="primary" id="start3">Start</button>
+        <button id="pause3" disabled>Pause</button>
+        <button id="skip3" disabled>Skip</button>
+        <button id="stop3" disabled>Stop</button>
+        <button id="reset3">Reset view</button>
+      </div>
+      <div class="status" id="status3"></div>
+      <div class="urns">
+        <div class="urn" id="urnB"><div class="jar"><div class="marbles" id="mB"></div></div><div class="urn-label"><b>B</b>ad <span id="cB">0</span></div></div>
+        <div class="urn" id="urnG"><div class="jar"><div class="marbles" id="mG"></div></div><div class="urn-label"><b>G</b>ood <span id="cG">0</span></div></div>
+        <div class="urn" id="urnU"><div class="jar"><div class="marbles" id="mU"></div></div><div class="urn-label"><b>U</b>ndecided <span id="cU">0</span></div></div>
+      </div>
+      <div>
+        <p class="note" style="margin-bottom:6px">Halfspaces of the selected point (click a point after the run):</p>
+        <div class="seg" role="group" aria-label="Show halfspaces">
+          <button id="hsOff" aria-pressed="true">Off</button>
+          <button id="hsH1" aria-pressed="false">H1</button>
+          <button id="hsH12" aria-pressed="false">H1 + H2</button>
+        </div>
+      </div>
+      <div>
+        <p class="note" style="margin-bottom:6px">Lineage lines (pink):</p>
+        <div class="buttons">
+          <button class="toggle" id="lnOB" aria-pressed="false">White → bad</button>
+          <button class="toggle" id="lnU1" aria-pressed="true">Bad → undecided 1</button>
+          <button class="toggle" id="lnU2" aria-pressed="true">Bad → undecided 2</button>
+          <button class="toggle" id="lnArrow" aria-pressed="true">Directions &gt;&gt;&gt;</button>
+        </div>
+      </div>
+      <div class="buttons"><button id="back3">Back to stage 2</button></div>
+    </div>
+
+    <div>
+      <h2 id="listTitle">Points</h2>
+      <p class="note" style="margin-bottom:6px">Click a point to move the view to it.</p>
+      <ol id="list"></ol>
+      <p class="note" id="empty">No points yet.</p>
+    </div>
+  </aside>
+</div>
 <script>
-/*
- Implementation notes:
- - Nodes are 0..63 (root = 0). Children: left = 2*i + 1, right = 2*i + 2.
- - Algorithm processes i = 1..63 (as you specified).
- - Each "blink" stage lasts roughly 2000 ms (2s) using Promise-based waits.
- - All animations are sequential as in the algorithm.
- - smallest means numerically smallest index in A that satisfies the criterion.
-*/
+(() => {
+  const $ = id => document.getElementById(id);
+  const TAU = 2 * Math.PI;
 
-const N = 63;
-const MAX = N - 1;
-const svgWidth = 1100, svgHeight = 640;
-const svgNS = "http://www.w3.org/2000/svg";
-let running = false;
-let paused = false;
-
-
-const selected = new Set(); // A
-const goodSet = [];
-const badSet = [];
-const undecSet = [];
-
-async function checkPaused() {
-  while (paused) {
-    await sleep(200); // check every 200ms
+  // =====================================================================
+  // Words in F2 = <a, b>: reduced strings over a, A = a^-1, b, B = b^-1
+  // =====================================================================
+  const INV = { a: 'A', A: 'a', b: 'B', B: 'b' };
+  const DIR = { a: [1, 0], A: [-1, 0], b: [0, 1], B: [0, -1] };
+  const CYC = ['b', 'a', 'B', 'A'];                 // clockwise from up
+  function inv(w) { let s = ''; for (let i = w.length - 1; i >= 0; i--) s += INV[w[i]]; return s; }
+  function mulw(u, w) {
+    let i = 0;
+    while (i < w.length && i < u.length && u[u.length - 1 - i] === INV[w[i]]) i++;
+    return u.slice(0, u.length - i) + w.slice(i);
   }
-}
-
-
-function $(id){ return document.getElementById(id); }
-const svgWrap = $('svgWrap');
-
-function createSVG(){
-  svgWrap.innerHTML = '';
-  const svg = document.createElementNS(svgNS, 'svg');
-  svg.setAttribute('width', svgWidth);
-  svg.setAttribute('height', svgHeight);
-  svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
-  svg.style.background = '#ffffff';
-  svg.style.borderRadius = '12px';
-  svg.style.padding = '6px';
-
-  // compute positions by level
-  const levels = Math.ceil(Math.log2(N+1)); // ensures enough levels
-  // Alternatively compute by floor(log2(i+1))
-  const pos = Array(N).fill(null);
-  for(let i=0;i<N;i++){
-    const level = Math.floor(Math.log2(i+1));
-    const levelStart = (1<<level)-1;
-    const indexInLevel = i - levelStart;
-    const nodesInLevel = 1<<level;
-    const y = 40 + level * 80;
-    const padding = 30;
-    const leftMargin = padding;
-    const rightMargin = svgWidth - padding;
-    const usable = rightMargin - leftMargin;
-    const x = leftMargin + usable * (indexInLevel + 0.5) / nodesInLevel;
-    pos[i] = {x,y,level,indexInLevel};
+  function lcp(u, v) { const n = Math.min(u.length, v.length); let i = 0; while (i < n && u.charCodeAt(i) === v.charCodeAt(i)) i++; return i; }
+  const wdist = (u, v) => u.length + v.length - 2 * lcp(u, v);
+  function rel(u, v) { const l = lcp(u, v); return inv(u.slice(l)) + v.slice(l); }      // u^-1 v
+  function randomWord(n, avoidFirst) {
+    let s = '', prev = avoidFirst ? INV[avoidFirst] : null;
+    for (let k = 0; k < n; k++) {
+      let h;
+      do h = CYC[Math.floor(Math.random() * 4)]; while (prev && h === INV[prev]);
+      s += h; prev = h;
+    }
+    return s;
   }
-
-
-
-
-for(let i=0;i<N;i++){
-  const left = 2*i + 1, right = 2*i + 2;
-  if(left < N){
-    const line = document.createElementNS(svgNS,'line');
-    line.setAttribute('x1', pos[i].x);
-    line.setAttribute('y1', pos[i].y + 12);
-    line.setAttribute('x2', pos[left].x);
-    line.setAttribute('y2', pos[left].y - 12);
-    line.setAttribute('class', 'edge');
-    line.setAttribute('data-parent', i);
-    line.setAttribute('data-child', left);
-    svg.appendChild(line);
+  // planar (clockwise) position of a word among the sphere of its length, as a sortable digit string
+  function planarKey(w) {
+    let s = String(CYC.indexOf(w[0]));
+    for (let k = 1; k < w.length; k++) {
+      const pi = CYC.indexOf(INV[w[k - 1]]);
+      s += String((CYC.indexOf(w[k]) - pi - 1 + 8) % 4);
+    }
+    return s;
   }
-  if(right < N){
-    const line = document.createElementNS(svgNS,'line');
-    line.setAttribute('x1', pos[i].x);
-    line.setAttribute('y1', pos[i].y + 12);
-    line.setAttribute('x2', pos[right].x);
-    line.setAttribute('y2', pos[right].y - 12);
-    line.setAttribute('class', 'edge');
-    line.setAttribute('data-parent', i);
-    line.setAttribute('data-child', right);
-    svg.appendChild(line);
+  // the sphere of radius D in clockwise order from the upward word
+  function sphere(D, limit) {
+    const out = [];
+    const rec = (w, depth) => {
+      if (out.length >= limit) return;
+      if (depth === D) { out.push(w); return; }
+      if (!w) { for (const h of CYC) rec(h, 1); return; }
+      const pi = CYC.indexOf(INV[w[w.length - 1]]);
+      for (let k = 1; k <= 3; k++) rec(w + CYC[(pi + k) % 4], depth + 1);
+    };
+    rec('', 0);
+    return out;
   }
-}
-
-  // nodes
-  for(let i=0;i<N;i++){
-    const g = document.createElementNS(svgNS,'g');
-    g.setAttribute('class','node');
-    g.setAttribute('data-i', i);
-    g.setAttribute('transform', `translate(${pos[i].x}, ${pos[i].y})`);
-
-    const circle = document.createElementNS(svgNS,'circle');
-    circle.setAttribute('r', 12);
-    circle.setAttribute('class','nodeCircle');
-    circle.setAttribute('fill','#fff');
-    g.appendChild(circle);
-
-    const label = document.createElementNS(svgNS,'text');
-    label.setAttribute('class','nodelabel');
-    label.textContent = i;
-    g.appendChild(label);
-
-    // cross lines (hidden initially)
-    const cross1 = document.createElementNS(svgNS,'line');
-    cross1.setAttribute('x1', -12); cross1.setAttribute('y1', -12);
-    cross1.setAttribute('x2', 12); cross1.setAttribute('y2', 12);
-    cross1.setAttribute('class', 'crossline');
-    cross1.setAttribute('visibility','hidden');
-    g.appendChild(cross1);
-    const cross2 = document.createElementNS(svgNS,'line');
-    cross2.setAttribute('x1', -12); cross2.setAttribute('y1', 12);
-    cross2.setAttribute('x2', 12); cross2.setAttribute('y2', -12);
-    cross2.setAttribute('class', 'crossline');
-    cross2.setAttribute('visibility','hidden');
-    g.appendChild(cross2);
-
-    // click handler to toggle selection (A)
-    g.addEventListener('click', (e)=>{
-      if(running) return; // disable toggling while running algorithm
-      const idx = Number(g.getAttribute('data-i'));
-      if(selected.has(idx)) selected.delete(idx);
-      else selected.add(idx);
-      refreshSelections();
-      e.stopPropagation();
-    });
-
-    svg.appendChild(g);
+  const SUP = { 0: '\u2070', 1: '\u00b9', 2: '\u00b2', 3: '\u00b3', 4: '\u2074', 5: '\u2075', 6: '\u2076', 7: '\u2077', 8: '\u2078', 9: '\u2079' };
+  function pretty(w) {
+    if (!w) return 'e';
+    let s = '', i = 0, parts = 0;
+    while (i < w.length) {
+      let j = i; while (j < w.length && w[j] === w[i]) j++;
+      const n = j - i;
+      s += w[i] + (n > 1 ? String(n).split('').map(c => SUP[c]).join('') : '');
+      i = j;
+      if (++parts >= 6 && i < w.length) return s + '\u2026';
+    }
+    return s;
   }
 
-  svgWrap.appendChild(svg);
-}
-createSVG();
-
-function nodeElem(i){
-  return svgWrap.querySelector(`g.node[data-i='${i}']`);
-}
-function circleElem(i){
-  return nodeElem(i).querySelector('circle.nodeCircle');
-}
-
-function edgeElem(i){
-  return nodeElem(i).querySelector('line.edge');
-}
-
-function crossElem(i){
-  const g = nodeElem(i);
-  return Array.from(g.querySelectorAll('.crossline'));
-}
-
-function refreshSelections(){
-  // update visuals for selected
-  for(let i=0;i<N;i++){
-    const g = nodeElem(i);
-    if(selected.has(i)) g.classList.add('selected');
-    else g.classList.remove('selected');
-    // clear transient classes when not running
-    g.classList.remove('blink');
+  // =====================================================================
+  // Geometry of the picture. The viewpoint is a point of the tree: vertex u, or
+  // the fraction t of the way along the edge u -> u g. A piece of tree at distance s from
+  // the viewpoint is drawn with density c * 0.4^s, c = ln 2.5 / 0.6, so an edge from
+  // distance s to s + 1 has length 0.4^s and the tree stays within |x| + |y| <= 5/3.
+  // =====================================================================
+  const Q = 0.4, EXT = 5 / 3, C0 = Math.log(2.5) / 0.6;
+  const Fl = (s0, s1) => (Math.pow(Q, s0) - Math.pow(Q, s1)) / 0.6;
+  let B = { u: '', g: '', t: 0 };
+  let viewVer = 0;
+  function posOfRel(w) {                    // w = u^-1 v
+    let x = 0, y = 0, s0 = 0;
+    if (B.t > 0) {
+      const dg = DIR[B.g];
+      if (w[0] === B.g) { const L = Fl(0, 1 - B.t); x = dg[0] * L; y = dg[1] * L; s0 = 1 - B.t; w = w.slice(1); }
+      else { const L = Fl(0, B.t); x = -dg[0] * L; y = -dg[1] * L; s0 = B.t; }
+    }
+    const n = Math.min(w.length, 45);
+    for (let k = 0; k < n; k++) { const d = DIR[w[k]], L = Fl(s0 + k, s0 + k + 1); x += d[0] * L; y += d[1] * L; }
+    return { x, y, s: s0 + w.length };
   }
-  $('Aview').textContent = selected.size ? Array.from(selected).sort((a,b)=>a-b).join(', ') : '∅';
-  updateLists();
-}
-
-function updateLists(){
-  $('goodItems').textContent = goodSet.length ? goodSet.join(', ') : '—';
-  $('badItems').textContent = badSet.length ? badSet.join(', ') : '—';
-  $('undecItems').textContent = undecSet.length ? undecSet.join(', ') : '—';
-}
-
-// Utility: get all descendants (strict descendants; excluding node itself) but sometimes we want including self
-function descendantsOf(i, includeSelf=false){
-  const result = [];
-  const stack = [];
-  const start = 2*i + 1; // left child index of i
-  if(start <= MAX) stack.push(start);
-  const start2 = 2*i + 2;
-  if(start2 <= MAX) stack.push(start2);
-  while(stack.length){
-    const cur = stack.shift();
-    result.push(cur);
-    const l = 2*cur + 1, r = 2*cur + 2;
-    if(l <= MAX) stack.push(l);
-    if(r <= MAX) stack.push(r);
+  const posOf = v => posOfRel(rel(B.u, v));
+  // walking the tree one letter at a time, tracking position incrementally
+  function stateAt(v) { const relU = rel(B.u, v), p = posOfRel(relU); return { relU, x: p.x, y: p.y, s: p.s, toward: false }; }
+  function step(st, h) {
+    const n = st.relU.length, toward = n > 0 && st.relU[n - 1] === INV[h];
+    const relU = toward ? st.relU.slice(0, -1) : st.relU + h;
+    if (B.t > 0 && ((st.relU === '' && h === B.g) || (st.relU === B.g && h === INV[B.g]))) {
+      const p = posOfRel(relU); return { relU, x: p.x, y: p.y, s: p.s, toward };
+    }
+    const d = DIR[h], s = st.s, L = toward ? Fl(s - 1, s) : Fl(s, s + 1);
+    return { relU, x: st.x + d[0] * L, y: st.y + d[1] * L, s: toward ? s - 1 : s + 1, toward };
   }
-  if(includeSelf) result.unshift(i);
-  return result;
-}
-
-// is a ancestor of b?
-function isAncestor(a,b){
-  if(a === b) return true;
-  let cur = b;
-  while(cur > 0){
-    cur = Math.floor((cur - 1) / 2);
-    if(cur === a) return true;
+  function pathStates(x, y) {                // states along the geodesic from x to y
+    let st = stateAt(x);
+    const out = [st], r = rel(x, y);
+    for (let k = 0; k < r.length; k++) { st = step(st, r[k]); out.push(st); }
+    return out;
   }
-  return false;
-}
+  const centerVertex = () => B.t < 0.5 ? B.u : mulw(B.u, B.g);
+  const sizeF = s => Math.pow(Q, 0.6 * s);
 
-// sleep helper
-function sleep(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+  // =====================================================================
+  // State
+  // =====================================================================
+  let points = [];                           // { w, d0, status, sc }
+  let stage = 1, mode = 'manual', filter2 = 'all';
+  let run = null;
+  let scene = { current: -1, flash: null, best: null, outside: null };
+  let s3 = null;
+  let focusPt = -1, navToken = null, lastListHTML = '', hsShow = 'off';
+  let showHull = false, shape = null;
+  const lineageOn = { ob: false, u1: true, u2: true };
+  let lineageArrows = true;
+  let visibleVerts = [];
+  const locked = () => !!run && !run.paused;
 
-// blink a single node or a set of nodes for duration ms
-async function blinkNodes(nodes, duration=1500){
-  nodes.forEach(i => nodeElem(i).classList.add('blink'));
-  // await duration (we will use .9s animation but keep nodes blinking for duration)
-  const step = 60;
-  let waited = 0;
-  while(waited < duration){
-    await checkPaused();
-    const chunk = Math.min(step, duration - waited);
-    await sleep(chunk);
-    waited += chunk;
+  const canvas = $('c'), ctx = canvas.getContext('2d');
+  const off = document.createElement('canvas'), octx = off.getContext('2d');
+  let W = 0, H = 0, dpr = 1, SCL = 1, cx = 0, cy = 0;
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    dpr = window.devicePixelRatio || 1;
+    W = rect.width; H = rect.height;
+    canvas.width = off.width = Math.max(1, Math.round(W * dpr));
+    canvas.height = off.height = Math.max(1, Math.round(H * dpr));
+    const top = Math.min(56, H * 0.12);
+    SCL = Math.max(10, (Math.min(W, H - top) / 2 - 14) / EXT);
+    cx = W / 2; cy = top + (H - top) / 2;
+    draw(true);
   }
-  nodes.forEach(i => nodeElem(i).classList.remove('blink'));
-}
+  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const scr = (x, y) => [cx + x * SCL, cy - y * SCL];
+  const onScreen = (x, y) => isFinite(x) && isFinite(y) && x > -30 && x < W + 30 && y > -30 && y < H + 30;
+  function readNum(id, lo, hi, def, int) {
+    let v = parseFloat($(id).value);
+    if (!isFinite(v)) v = def;
+    v = Math.min(hi, Math.max(lo, v));
+    if (int) v = Math.round(v);
+    $(id).value = v;
+    return v;
+  }
+  function screenOfPoint(p) {
+    if (p.sv !== viewVer) { const q = posOf(p.w); p.sx = q.x; p.sy = q.y; p.ss = q.s; p.sv = viewVer; }
+    const [x, y] = scr(p.sx, p.sy);
+    return { x, y, s: p.ss };
+  }
 
-// shade region containing specific nodes permanently by adding classes
-function shadeNodes(nodes, type='good'){
-  const nodeSet = new Set(nodes);
-  // shade nodes
-  nodes.forEach(i=>{
-    const g = nodeElem(i);
-    g.classList.remove('shaded-bad','shaded-aux','shaded-good');
-    if(type === 'good') g.classList.add('shaded-good');
-    else if(type === 'bad') g.classList.add('shaded-bad');
-    else g.classList.add('shaded-aux');
-  });
+  // =====================================================================
+  // Drawing
+  // =====================================================================
+  function drawTree() {
+    const cGrid = css('--grid'), cStrong = css('--grid-strong');
+    visibleVerts = [];
+    const segs = [[], [], []];                 // by width class
+    const stack = [];
+    const root = stateAt(B.u);
+    visibleVerts.push({ relU: '', x: root.x, y: root.y });
+    if (B.t > 0) {
+      const other = step(root, B.g);
+      segs[0].push([root, other]);
+      visibleVerts.push({ relU: B.g, x: other.x, y: other.y });
+      stack.push([root, B.g], [other, INV[B.g]]);
+    } else stack.push([root, null]);
+    let count = 0;
+    while (stack.length && count < 12000) {
+      const [st, ex] = stack.pop();
+      for (const h of CYC) {
+        if (h === ex) continue;
+        const nx = step(st, h);
+        const len = Math.hypot(nx.x - st.x, nx.y - st.y) * SCL;
+        if (len < 0.35) continue;
+        segs[nx.s < 1.5 ? 0 : nx.s < 3.5 ? 1 : 2].push([st, nx]);
+        if (len > 3) visibleVerts.push({ relU: nx.relU, x: nx.x, y: nx.y });
+        stack.push([nx, INV[h]]);
+        count++;
+      }
+    }
+    const widths = [2, 1.4, 0.9], colors = [cStrong, cStrong, cGrid];
+    for (let c = 2; c >= 0; c--) {
+      ctx.strokeStyle = colors[c]; ctx.lineWidth = widths[c];
+      ctx.beginPath();
+      for (const [a, b] of segs[c]) { const p = scr(a.x, a.y), q = scr(b.x, b.y); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); }
+      ctx.stroke();
+    }
+    // the identity
+    const e = posOf(''), [ex, ey] = scr(e.x, e.y);
+    if (onScreen(ex, ey)) { ctx.fillStyle = cStrong; ctx.beginPath(); ctx.rect(ex - 3, ey - 3, 6, 6); ctx.fill(); }
+  }
+  function diamond(c, x, y, r) { const [px, py] = scr(x, y), R = r * SCL; c.moveTo(px, py - R); c.lineTo(px + R, py); c.lineTo(px, py + R); c.lineTo(px - R, py); c.closePath(); }
 
-  // shade edges connecting nodes inside the region
-  // get all edges
-  const edges = svgWrap.querySelectorAll('line.edge');
-  edges.forEach(edge=>{
-    const p = Number(edge.getAttribute('data-parent'));
-    const c = Number(edge.getAttribute('data-child'));
-    if(nodeSet.has(p) && nodeSet.has(c)){
-      // edge inside region => shade it
-      edge.classList.remove('shaded-good','shaded-bad','shaded-aux');
-      if(type === 'good') edge.classList.add('shaded-good');
-      else if(type === 'bad') edge.classList.add('shaded-bad');
-      else edge.classList.add('shaded-aux');
+  // halfspace { base, p, r }: vertices whose word from base starts with p and has length >= |p| + r
+  const inHS = (relw, hs) => relw.length >= hs.p.length + hs.r && relw.startsWith(hs.p);
+  function paintHalf(hs, color, label) {
+    const v = mulw(hs.base, hs.p), ex = INV[hs.p[hs.p.length - 1]];
+    const st0 = stateAt(v), near = step(st0, ex);
+    const baseInside = inHS(rel(hs.base, B.u), { p: hs.p, r: 0 });
+    ctx.strokeStyle = ctx.fillStyle = color;
+    // the removed edge, marked with a bar across it
+    {
+      const mx = (st0.x + near.x) / 2, my = (st0.y + near.y) / 2, [px, py] = scr(mx, my);
+      const len = Math.hypot(st0.x - near.x, st0.y - near.y) * SCL;
+      const vx = (st0.x - near.x) * SCL / (len || 1), vy = -(st0.y - near.y) * SCL / (len || 1), b = Math.max(4, Math.min(12, len * 0.4));
+      if (onScreen(px, py)) { ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(px - vy * b, py + vx * b); ctx.lineTo(px + vy * b, py - vx * b); ctx.stroke(); }
+    }
+    // translucent diamonds around the region's root vertices (when the viewpoint is outside it)
+    ctx.globalAlpha = 0.16;
+    if (!baseInside && hs.r <= 4) {
+      let roots = [{ st: st0, last: hs.p[hs.p.length - 1] }];
+      for (let k = 0; k < hs.r; k++) {
+        const nx = [];
+        for (const { st, last } of roots) for (const h of CYC) if (h !== INV[last]) nx.push({ st: step(st, h), last: h });
+        roots = nx.map(o => o);
+      }
+      roots = roots.map(o => o.st);
+      ctx.beginPath();
+      for (const st of roots) diamond(ctx, st.x, st.y, EXT * Math.pow(Q, st.s) * 0.98);
+      ctx.fill();
+    }
+    // the region's edges
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    const stack = [[st0, ex, 0]];
+    let count = 0;
+    while (stack.length && count < 9000) {
+      const [st, exl, depth] = stack.pop();
+      for (const h of CYC) {
+        if (h === exl) continue;
+        const nx = step(st, h);
+        const len = Math.hypot(nx.x - st.x, nx.y - st.y) * SCL;
+        if (!nx.toward && len < 0.35) continue;
+        if (depth >= hs.r) { const p = scr(st.x, st.y), q = scr(nx.x, nx.y); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); }
+        stack.push([nx, INV[h], depth + 1]);
+        count++;
+      }
+    }
+    ctx.lineWidth = 3.5; ctx.stroke();
+    ctx.globalAlpha = 1;
+    if (label) {
+      const [lx, ly] = scr(st0.x, st0.y);
+      if (onScreen(lx, ly)) drawLabel(label, lx + 14, ly - 12);
+    }
+  }
+  function drawLabel(text, x, y) {
+    ctx.font = `500 13px ${css('--sans')}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 3; ctx.strokeStyle = css('--disc'); ctx.strokeText(text, x, y);
+    ctx.fillStyle = css('--ink'); ctx.fillText(text, x, y);
+    ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+  }
+  const hsLabel = (n, h) => h.r > 0 ? `H${n}\u2032` : `H${n}`;
+
+  // thick translucent union of tree paths from `from` to each word in `tos`
+  function paintPaths(pairs, color, alpha, wmax) {
+    octx.setTransform(1, 0, 0, 1, 0, 0);
+    octx.clearRect(0, 0, off.width, off.height);
+    octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    octx.lineCap = 'round'; octx.lineJoin = 'round';
+    octx.strokeStyle = octx.fillStyle = color;
+    for (const [x, y] of pairs) {
+      const sts = pathStates(x, y);
+      for (let k = 1; k < sts.length; k++) {
+        const a = sts[k - 1], b = sts[k];
+        if (Math.min(a.s, b.s) > 40) continue;
+        const p = scr(a.x, a.y), q = scr(b.x, b.y);
+        octx.lineWidth = Math.max(2, wmax * Math.pow(Q, 0.5 * Math.min(a.s, b.s)));
+        octx.beginPath(); octx.moveTo(p[0], p[1]); octx.lineTo(q[0], q[1]); octx.stroke();
+      }
+      const s0 = sts[0], [px, py] = scr(s0.x, s0.y);
+      octx.beginPath(); octx.arc(px, py, Math.max(2, wmax * 0.6 * Math.pow(Q, 0.5 * s0.s)), 0, TAU); octx.fill();
+    }
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(off, 0, 0);
+    ctx.restore();
+  }
+  function drawLineage() {
+    if (!s3.edges.length) return;
+    const color = css('--lineage');
+    ctx.strokeStyle = color; ctx.globalAlpha = 0.9;
+    for (const [i, j, cat] of s3.edges) {
+      if (!lineageOn[cat]) continue;
+      const sts = pathStates(points[i].w, points[j].w).filter(st => st.s < 40);
+      const pts = sts.map(st => { const [x, y] = scr(st.x, st.y); return { x, y, f: sizeF(st.s) }; });
+      ctx.lineWidth = 2.5;
+      ctx.beginPath(); pts.forEach((p, k) => k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
+      if (lineageArrows) drawChevrons(pts);
+    }
+    ctx.globalAlpha = 1;
+  }
+  function drawChevrons(pts) {
+    if (pts.length < 2) return;
+    const spacing = 16;
+    let carry = spacing / 2;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let k = 1; k < pts.length; k++) {
+      const a = pts[k - 1], b = pts[k], dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+      if (!len) continue;
+      const ux = dx / len, uy = dy / len;
+      let t = carry;
+      while (t <= len) {
+        const x = a.x + ux * t, y = a.y + uy * t, f = a.f + (b.f - a.f) * (t / len), sz = 2 + 4 * f;
+        if (sz > 2.2 && onScreen(x, y)) {
+          ctx.moveTo(x - sz * (ux - 0.8 * uy), y - sz * (uy + 0.8 * ux));
+          ctx.lineTo(x, y);
+          ctx.lineTo(x - sz * (ux + 0.8 * uy), y - sz * (uy - 0.8 * ux));
+        }
+        t += spacing;
+      }
+      carry = t - len;
+    }
+    ctx.stroke();
+  }
+  function drawShape() {
+    if (!shape) return;
+    ctx.strokeStyle = css('--shape'); ctx.lineWidth = 1.5; ctx.setLineDash([6, 5]);
+    if (shape.type === 'ball') {
+      const c = posOf(shape.c);
+      ctx.beginPath(); diamond(ctx, c.x, c.y, Math.pow(Q, c.s) * (1 - Math.pow(Q, shape.R)) / 0.6 + 0.004); ctx.stroke();
     } else {
-      // remove shading if edge not inside region (to avoid leftover shading)
-
+      for (const w of shape.rays) {
+        const pts = pathStates(shape.c, mulw(shape.c, w)).filter(st => st.s < 40);
+        ctx.beginPath(); pts.forEach((st, k) => { const [x, y] = scr(st.x, st.y); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+      }
     }
+    ctx.setLineDash([]);
+  }
+  function drawHull() {
+    if (points.length < 2) return;
+    const pairs = points.slice(1).map(p => [points[0].w, p.w]);
+    paintPaths(pairs, css('--hull'), 0.3, 10);
+  }
+
+  let lastList = 0;
+  function draw(forceList) {
+    if (!W) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    // the square that always contains the tree
+    ctx.beginPath(); diamond(ctx, 0, 0, EXT + 0.03);
+    ctx.fillStyle = css('--disc'); ctx.fill();
+    ctx.strokeStyle = css('--ink'); ctx.lineWidth = 1.5; ctx.stroke();
+
+    if (showHull) drawHull();
+    if (stage === 3 && s3 && s3.regions.length) {
+      const pairs = [];
+      for (const reg of s3.regions) for (const j of reg.members) if (j !== reg.center) pairs.push([points[reg.center].w, points[j].w]);
+      for (const reg of s3.regions) pairs.push([points[reg.center].w, points[reg.center].w]);
+      paintPaths(pairs, css('--yay'), 0.25, 16);
+    }
+    drawTree();
+    if (stage === 1 && mode === 'sprinkle') {
+      const R = Math.max(1, Math.min(200, parseInt($('R').value) || 4)), c = posOf(centerVertex());
+      ctx.strokeStyle = css('--point'); ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
+      ctx.beginPath(); diamond(ctx, c.x, c.y, Math.pow(Q, c.s) * (1 - Math.pow(Q, R)) / 0.6 + 0.004); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    if (stage === 1) drawShape();
+    if (stage === 2) {
+      if (scene.flash) paintHalf(scene.flash.h, css('--flash'), String(scene.flash.cnt));
+      if (scene.best) {
+        paintHalf(scene.best[1].h, css('--hs2'), `2nd: ${scene.best[1].cnt}`);
+        paintHalf(scene.best[0].h, css('--hs1'), `1st: ${scene.best[0].cnt}`);
+      }
+    }
+    if (stage === 3 && s3) {
+      let h1 = s3.H1, h2 = s3.H2;
+      if (!h1 && !locked() && hsShow !== 'off' && s3.rec[focusPt]) {
+        h1 = s3.rec[focusPt].H1;
+        h2 = hsShow === 'h12' ? s3.rec[focusPt].H2 : null;
+      }
+      if (h2) paintHalf(h2, css('--hs2'), hsLabel(2, h2));
+      if (h1) paintHalf(h1, css('--hs1'), hsLabel(1, h1));
+      drawLineage();
+    }
+    drawPoints();
+    // viewpoint marker
+    ctx.font = `13px ${css('--sans')}`; ctx.fillStyle = css('--muted'); ctx.textAlign = 'center';
+    ctx.fillText('\u25cb', cx, cy + 4.5); ctx.textAlign = 'start';
+
+    const now = performance.now();
+    if (forceList || now - lastList > 150) { lastList = now; updateList(); }
+  }
+
+  function drawPoints() {
+    const cInk = css('--ink'), font = css('--sans');
+    const col = { null: css('--point'), undefined: css('--point'), yay: css('--yay'), uh: css('--uh') };
+    const cBlack = css('--black'), cGray = css('--gray');
+    const many = points.length > 400;
+    const label = (txt, x, y, r, f) => { ctx.fillStyle = cInk; ctx.font = `${Math.round(10 + 4 * f)}px ${font}`; ctx.fillText(txt, x + r + 3, y - r - 2); };
+    const dot = (x, y, r, color) => { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fillStyle = color; ctx.fill(); };
+    const ring = (x, y, r, color, lw) => { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke(); };
+    const rad = f => many ? 1 + 3 * f : 1.5 + 5 * f;
+    if (stage === 3 && s3) {
+      const showLabels = s3.list.length <= 80;
+      points.forEach((p, i) => {
+        if (s3.rank.has(i)) return;
+        const P = screenOfPoint(p);
+        if (!onScreen(P.x, P.y)) return;
+        dot(P.x, P.y, rad(sizeF(P.s)) / 2, s3.cover.has(i) ? col.yay : cBlack);
+      });
+      s3.list.forEach((i, a) => {
+        const P = screenOfPoint(points[i]);
+        if (!onScreen(P.x, P.y)) return;
+        const f = sizeF(P.s);
+        if (i === s3.white) {
+          ring(P.x, P.y, 7, css('--white-ring'), 3); dot(P.x, P.y, 6, '#FFFFFF');
+          if (i === s3.current) ring(P.x, P.y, 13, cInk, 2);
+          label(String(a + 1), P.x, P.y, 8, 1);
+          return;
+        }
+        const r = rad(f);
+        let c = cBlack;
+        if (s3.G.has(i)) c = col.yay; else if (s3.B.has(i)) c = col.uh;
+        else if (s3.U.has(i) || s3.tempGray.has(i)) c = cGray;
+        if (s3.tempGray.has(i)) ring(P.x, P.y, r + 4, cGray, 2);
+        if (i === s3.current) ring(P.x, P.y, r + 7, cInk, 2);
+        dot(P.x, P.y, r, c);
+        if (showLabels && f > 0.25) label(String(a + 1), P.x, P.y, r, f);
+      });
+    } else {
+      const showLabels = points.length <= 80;
+      points.forEach((p, i) => {
+        const P = screenOfPoint(p);
+        if (!onScreen(P.x, P.y)) return;
+        const f = sizeF(P.s), r = rad(f);
+        const dim = stage === 2 && filter2 !== 'all' && p.status !== filter2;
+        ctx.globalAlpha = dim ? 0.12 : 1;
+        if (stage === 2 && scene.outside && scene.outside.has(i)) ring(P.x, P.y, r + 4, col.uh, 1.5);
+        if (stage === 2 && i === scene.current) ring(P.x, P.y, r + 7, cInk, 2);
+        dot(P.x, P.y, r, stage === 2 ? col[p.status] : col.null);
+        if (showLabels && f > 0.25) label('P' + (i + 1), P.x, P.y, r, f);
+        ctx.globalAlpha = 1;
+      });
+    }
+    if (focusPt >= 0 && focusPt < points.length) {
+      const P = screenOfPoint(points[focusPt]);
+      if (onScreen(P.x, P.y)) { ctx.setLineDash([4, 3]); ring(P.x, P.y, 14, css('--point'), 2); ctx.setLineDash([]); }
+    }
+  }
+
+  // ---------- list ----------
+  const LIST_MAX = 250;
+  function updateList() {
+    let rows = [];
+    const row = (i, id, mid, right) =>
+      `<li data-i="${i}" tabindex="0"${i === focusPt ? ' class="sel"' : ''}><span class="id">${id}</span><span>${mid}</span>${right || ''}</li>`;
+    if (stage === 1) {
+      $('listTitle').textContent = `Points (${points.length})`;
+      rows = points.slice(0, LIST_MAX).map((p, i) => row(i, 'P' + (i + 1), pretty(p.w), `<span>|${p.w.length}|</span>`));
+      if (points.length > LIST_MAX) rows.push(`<li><span>and ${points.length - LIST_MAX} more</span></li>`);
+      $('empty').textContent = 'No points yet. Shift-click the tree or generate an example.';
+    } else if (stage === 2) {
+      const shown = points.map((p, i) => [p, i]).filter(([p]) => filter2 === 'all' || p.status === filter2);
+      $('listTitle').textContent = filter2 === 'all' ? `Points of A′ (${points.length})`
+        : filter2 === 'yay' ? `Blue points (${shown.length})` : `Red points (${shown.length})`;
+      rows = shown.slice(0, LIST_MAX).map(([p, i]) => row(i, 'P' + (i + 1), pretty(p.w),
+        p.status === 'yay' ? '<span class="yay">Yay</span>' : p.status === 'uh' ? '<span class="uh">Uh oh.</span>' : '<span>&mdash;</span>'));
+      if (shown.length > LIST_MAX) rows.push(`<li><span>and ${shown.length - LIST_MAX} more</span></li>`);
+      $('empty').textContent = 'No points match this filter.';
+    } else if (s3) {
+      $('listTitle').textContent = `Points of A″ (${s3.list.length})`;
+      rows = s3.list.slice(0, LIST_MAX).map((i, a) => row(i, `${a + 1}${i === s3.white ? ' \u25cb' : ''}`, pretty(points[i].w),
+        s3.G.has(i) ? '<span class="yay">Good</span>' : s3.B.has(i) ? '<span class="uh">Bad</span>'
+          : s3.U.has(i) ? '<span class="und">Undecided</span>' : '<span>&mdash;</span>'));
+    }
+    const html = rows.join('');
+    if (html !== lastListHTML) { $('list').innerHTML = html; lastListHTML = html; }
+    $('empty').hidden = rows.length > 0;
+    $('undo').disabled = $('clear').disabled = $('next1').disabled = !points.length || !!run;
+  }
+
+  // =====================================================================
+  // Stage 1: manual, sprinkle, spacing, examples
+  // =====================================================================
+  function setMode(m) {
+    mode = m;
+    const s = m === 'sprinkle';
+    $('mode').setAttribute('aria-pressed', String(s));
+    $('mode').textContent = s ? 'Mode: sprinkle' : 'Mode: manual';
+    $('fN').hidden = $('fR').hidden = !s;
+    $('modeHelp').textContent = s
+      ? 'Shift-click to scatter N random vertices, uniformly from the ball of radius R about the vertex at the center of the view (dashed).'
+      : 'Shift-click to add the vertex nearest the cursor.';
+    draw(true);
+  }
+  const mkPoint = w => ({ w, status: null, sv: -1 });
+  // push a new vertex straight away from the nearest too-close point until it is at least S from all
+  function placeSpaced(v, S) {
+    if (S <= 0) return v;
+    for (let it = 0; it < 200; it++) {
+      let near = null, nd = Infinity;
+      for (const p of points) {
+        if (Math.abs(p.w.length - v.length) >= S) continue;
+        const d = wdist(p.w, v);
+        if (d < S && d < nd) { nd = d; near = p; }
+      }
+      if (!near) return v;
+      const r = rel(near.w, v), need = Math.ceil(S - nd);
+      if (!r || it > 30) v = mulw(v, randomWord(need, r ? r[r.length - 1] : null));
+      else v = mulw(v, r[r.length - 1].repeat(need));
+    }
+    return null;
+  }
+  // a random vertex of the ball of radius R about c, uniform over the ball
+  function randomInBall(c, R) {
+    const total = 2 * Math.pow(3, R) - 1;
+    let u = Math.random() * total, r = 0;
+    if (u >= 1) { u -= 1; r = 1; let sz = 4; while (r < R && u >= sz) { u -= sz; sz *= 3; r++; } }
+    return mulw(c, randomWord(r));
+  }
+  function sprinkle(S) {
+    const N = readNum('N', 1, 2000, 40, true), R = readNum('R', 1, 200, 4, true), c = centerVertex();
+    let added = 0, moved = 0;
+    for (let i = 0; i < N; i++) {
+      const v0 = randomInBall(c, R), v = placeSpaced(v0, S);
+      if (v !== null) { points.push(mkPoint(v)); added++; if (v !== v0) moved++; }
+    }
+    $('status1').textContent = `Added ${added} of ${N}` + (moved ? `, ${moved} pushed apart` : '') + (N - added ? `, ${N - added} had no room` : '') + '.';
+  }
+
+  // greedy maximal R1-separated subset of `cands` (words relative to a common center).
+  // Index: chosen words are filed under their prefixes at depths 0, 4, 8, ...; a vertex u can only be
+  // closer than R1 to points sharing its prefix of length m = |u| - R1 + 1 (since |v| >= lcp).
+  function greedySeparated(cands, R1) {
+    const index = new Map(), chosen = [];
+    const file = w => { for (let d = 0; d <= w.length; d += 4) { const k = w.slice(0, d); let a = index.get(k); if (!a) index.set(k, a = []); a.push(w); } };
+    for (const u of cands) {
+      const m = Math.max(0, Math.ceil(u.length - R1 + 1e-9)), d = m - (m % 4);
+      const list = index.get(u.slice(0, d)) || [];
+      let ok = true;
+      for (const v of list) if (wdist(u, v) < R1) { ok = false; break; }
+      if (ok) { chosen.push(u); file(u); }
+    }
+    return chosen;
+  }
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  const CAND_MAX = 800000, POINT_MAX = 25000;
+  function ballWords(R) {                     // every word of length <= R
+    const out = [''];
+    let layer = [''];
+    for (let r = 1; r <= R; r++) {
+      const nx = [];
+      for (const w of layer) for (const h of CYC) if (!w || h !== INV[w[w.length - 1]]) nx.push(w + h);
+      out.push(...nx); layer = nx;
+    }
+    return out;
+  }
+  // k rays from the center, spread over the smallest sphere with at least k words, then straight
+  function rayWords(k, L) {
+    let d = 1; while (4 * Math.pow(3, d - 1) < k) d++;
+    const sph = sphere(d, Infinity), M = sph.length, out = [];
+    for (let j = 0; j < k; j++) {
+      const w = sph[Math.floor(j * M / k)];
+      out.push(L <= d ? w.slice(0, L) : w + w[w.length - 1].repeat(L - d));
+    }
+    return out;
+  }
+  function generate(kind) {
+    const status = $('status1'), c = centerVertex();
+    let R1, cands, note = '';
+    if (kind === 'ball') {
+      R1 = readNum('e1R1', 1, 200, 2, true); const R2 = readNum('e1R2', 0, 200, 6, true);
+      const est = Math.pow(3, R2 - Math.floor((R1 - 1) / 2));
+      if (est > POINT_MAX * 3) { status.textContent = `That could need about ${est.toExponential(1)} points. Increase R1 or decrease R2.`; return; }
+      if (2 * Math.pow(3, R2) - 1 <= CAND_MAX) cands = shuffle(ballWords(R2));
+      else {
+        const set = new Set();
+        for (let i = 0; i < CAND_MAX; i++) set.add(rel(c, randomInBall(c, R2)));
+        cands = shuffle([...set]);
+        note = ' (the ball is too big to list, so this is maximal among a random sample of it)';
+      }
+      shape = { type: 'ball', c, R: R2 };
+    } else {
+      R1 = readNum('e2R1', 1, 200, 2, true); const R2 = readNum('e2R2', 0, 8, 1, true);
+      const k = readNum('e2k', 1, 64, 4, true), L = readNum('e2L', 0, 200, 50, true);
+      const rays = rayWords(k, L);
+      const S = new Set(['']);
+      for (const w of rays) for (let i = 1; i <= w.length; i++) S.add(w.slice(0, i));
+      if (S.size * Math.pow(3, R2) > CAND_MAX) { status.textContent = `That neighborhood has about ${Math.round(S.size * Math.pow(3, R2)).toLocaleString()} vertices. Decrease R2, k or L.`; return; }
+      const all = new Set(S);
+      for (const x of S) {
+        const grow = (w, depth) => {
+          if (depth === R2) return;
+          for (const h of CYC) {
+            if (w && h === INV[w[w.length - 1]]) continue;
+            const y = w + h;
+            if (S.has(y) || all.has(y) && depth === 0) continue;
+            if (!all.has(y)) all.add(y);
+            grow(y, depth + 1);
+          }
+        };
+        grow(x, 0);
+      }
+      cands = shuffle([...all]);
+      shape = { type: 'rays', c, rays };
+    }
+    const chosen = greedySeparated(cands, R1);
+    points = chosen.map(w => mkPoint(mulw(c, w)));
+    focusPt = -1;
+    status.textContent = `Generated ${points.length} points: a maximal ${R1}-separated subset of ${cands.length.toLocaleString()} vertices${note}.`;
+    draw(true);
+  }
+  function generateLater(kind) { $('status1').textContent = 'Generating\u2026'; setTimeout(() => generate(kind), 20); }
+  $('gen1').onclick = () => generateLater('ball');
+  $('gen2').onclick = () => generateLater('rays');
+
+  // =====================================================================
+  // Moving the viewpoint
+  // =====================================================================
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const frame = () => new Promise(r => requestAnimationFrame(r));
+  const gate = token => token.paused && !token.skip && !token.cancelled
+    ? new Promise(r => (token.waiters = token.waiters || []).push(r)) : Promise.resolve();
+  const release = token => { const w = token.waiters || []; token.waiters = []; w.forEach(r => r()); };
+  async function psleep(token, ms) {
+    let left = ms;
+    while (left > 0 && !token.skip && !token.cancelled) {
+      if (token.paused) { await gate(token); continue; }
+      const t0 = performance.now();
+      await sleep(Math.min(left, 40));
+      if (!token.paused) left -= performance.now() - t0;
+    }
+  }
+  const wait = (ms, token) => psleep(token, ms);
+  const ease = s => s < 0.5 ? 2*s*s : 1 - Math.pow(-2*s + 2, 2) / 2;
+  function setBase(b) { B = b; viewVer++; }
+  // the viewpoint after travelling s along the tree path from base b0 to vertex q
+  function travelPlan(b0, q) {
+    const wq = rel(b0.u, q);
+    if (b0.t === 0) return { b0, first: 0, fwd: false, start: b0.u, letters: wq, total: wq.length };
+    if (wq[0] === b0.g) return { b0, first: 1 - b0.t, fwd: true, start: mulw(b0.u, b0.g), letters: wq.slice(1), total: 1 - b0.t + wq.length - 1 };
+    return { b0, first: b0.t, fwd: false, start: b0.u, letters: wq, total: b0.t + wq.length };
+  }
+  function baseAt(plan, s) {
+    const b0 = plan.b0;
+    if (s < plan.first) return { u: b0.u, g: b0.g, t: plan.fwd ? b0.t + s : b0.t - s };
+    const r = s - plan.first, k = Math.floor(r + 1e-12), f = r - k;
+    if (k >= plan.letters.length) return { u: mulw(plan.start, plan.letters), g: '', t: 0 };
+    const u = mulw(plan.start, plan.letters.slice(0, k));
+    return f > 1e-9 ? { u, g: plan.letters[k], t: f } : { u, g: '', t: 0 };
+  }
+  function animateTo(q, token, fixedDur) {
+    return new Promise(resolve => {
+      const plan = travelPlan(B, q);
+      if (token.skip || plan.total === 0) { setBase({ u: q, g: '', t: 0 }); return resolve(); }
+      const dur = fixedDur || Math.min(1600, 300 + 220 * Math.min(plan.total, 6));
+      let t0 = performance.now(), prev = t0;
+      function stepF(now) {
+        if (token.cancelled) return resolve();
+        if (token.skip) { setBase({ u: q, g: '', t: 0 }); return resolve(); }
+        if (token.paused) { t0 += now - prev; prev = now; return requestAnimationFrame(stepF); }
+        prev = now;
+        const s = Math.min(1, (now - t0) / dur);
+        setBase(s >= 1 ? { u: q, g: '', t: 0 } : baseAt(plan, ease(s) * plan.total));
+        draw();
+        s < 1 ? requestAnimationFrame(stepF) : resolve();
+      }
+      requestAnimationFrame(stepF);
+    });
+  }
+  function goToVertex(v, i) {
+    if (locked()) return;
+    if (navToken) navToken.cancelled = true;
+    const t = { cancelled: false, skip: false };
+    navToken = t; focusPt = i == null ? -1 : i;
+    draw(true);
+    animateTo(v, t, 500).then(() => { if (navToken === t) navToken = null; draw(true); });
+  }
+  const goToPoint = i => { if (points[i]) goToVertex(points[i].w, i); };
+  $('list').addEventListener('pointerdown', e => {
+    const li = e.target.closest('li[data-i]');
+    if (li && e.button === 0) goToPoint(+li.dataset.i);
   });
-}
+  $('list').addEventListener('keydown', e => {
+    const li = e.target.closest('li[data-i]');
+    if (li && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); goToPoint(+li.dataset.i); }
+  });
 
-
-// cross out node i (make X visible)
-function crossOut(i){
-  const [c1,c2] = crossElem(i);
-  c1.setAttribute('visibility','visible');
-  c2.setAttribute('visibility','visible');
-}
-
-function removeFromUndecided(i) {
-  const idx = undecSet.indexOf(i);
-  if(idx !== -1){
-    undecSet.splice(idx,1);
-    // Remove auxiliary shading from node
-    const g = nodeElem(i);
-    if(g){
-      g.classList.remove('shaded-aux');
+  // dragging: slide the viewpoint along the tree against the drag, so the picture follows the cursor
+  function moveBase(vx, vy) {
+    const n = Math.hypot(vx, vy);
+    if (n < 1e-12) return;
+    const ux = -vx / n, uy = -vy / n;
+    let rem = n / C0;                      // near the center, one unit of tree is drawn about C0 long
+    let b = { ...B }, came = null;
+    for (let it = 0; it < 12 && rem > 1e-12; it++) {
+      if (b.t === 0) {
+        let best = null, bd = 0.35;
+        for (const h of CYC) { if (h === came) continue; const d = DIR[h][0] * ux + DIR[h][1] * uy; if (d > bd) { bd = d; best = h; } }
+        if (!best) break;
+        b.g = best;
+      }
+      const d = DIR[b.g], proj = d[0] * ux + d[1] * uy, perp = Math.abs(proj) < 0.3;
+      const t = b.t + (perp ? (b.t < 0.5 ? -rem : rem) : rem * proj);
+      if (t >= 1) { const over = t - 1; came = INV[b.g]; b = { u: mulw(b.u, b.g), g: '', t: 0 }; rem = perp ? 0 : over / Math.abs(proj); }
+      else if (t <= 0) { const over = -t; came = b.g; b = { u: b.u, g: '', t: 0 }; rem = perp ? 0 : over / Math.abs(proj); }
+      else { b.t = t; rem = 0; }
     }
-  }
-}
-
-// algorithm-run: as described by the user
-async function runAlgorithm(){
-  if(running) return;
-  running = true;
-  stopRequested = false;
-  goodSet.splice(0,goodSet.length);
-  badSet.splice(0,badSet.length);
-  undecSet.splice(0,undecSet.length);
-  // clear any shading or crosses
-  for(let i=0;i<N;i++){
-    const g = nodeElem(i);
-    g.classList.remove('shaded-good','shaded-bad','shaded-aux');
-    crossElem(i).forEach(line => line.setAttribute('visibility','hidden'));
-  }
-  updateLists();
-
-  // Helper to test membership of any descendant in A
-  function anyDescendantInA(i, includeSelf=false){
-    const desc = descendantsOf(i, includeSelf);
-    for(const d of desc){
-      if(selected.has(d)) return true;
-    }
-    return false;
+    if (b.t === 0) b.g = '';
+    setBase(b);
   }
 
-  function smallestInAAmong(list){
-    if(!list || !list.length) return null;
-    const filtered = Array.from(list).filter(x => selected.has(x)).sort((a,b)=>a-b);
-    return filtered.length ? filtered[0] : null;
-  }
-
-  for(let i=0;i<=63;i++){ // per specification: for each i = 0,...,63
-     await checkPaused();
-
-  if (selected.has(i)) {
-    await blinkNodes([i], 1500);
-    await checkPaused();
-      // blink the region containing i and its descendants for 2s
-      const region = descendantsOf(i, true); // include i
-      await blinkNodes(region, 1500);
-      if(stopRequested) break;
-
-      // if no descendant of i is in A
-      // careful: "no descendent of i is in A" -> I interpret as none of the strict descendants are in A.
-      const strictDesc = descendantsOf(i, false);
-      const strictDescHas = strictDesc.some(d => selected.has(d));
-      if(!strictDescHas){
-        // then put i in good, color the region containing i and its descendants forever;
-        removeFromUndecided(i);
-        goodSet.push(i);
-        shadeNodes([i, ...strictDesc], 'good');
-        updateLists();
-      } else {
-        // otherwise:
-        // pick smallest j in A that is a descendent of i;
-        const jCandidates = strictDesc.filter(d => selected.has(d)).sort((a,b)=>a-b);
-        const j = jCandidates[0];
-        // pick the child i' of i that is not an ancestor of j;
-        const left = 2*i + 1, right = 2*i + 2;
-        // identify which child is ancestor of j
-        let childUnused = null;
-        if(left <= MAX && isAncestor(left, j)) childUnused = right;
-        else if(right <= MAX && isAncestor(right, j)) childUnused = left;
-        else {
-          // if none are ancestors (shouldn't happen if j is descendant of i), pick the one that exists but not equal...
-          childUnused = (left <= MAX) ? left : ((right <= MAX) ? right : null);
-        }
-        if(childUnused === null){
-          // degenerate, treat as bad
-          removeFromUndecided(i);
-          badSet.push(i);
-          shadeNodes([i], 'bad');
-          crossOut(i);
-          updateLists();
-          continue;
-        }
-
-        // blink the region containing i' and its descendents for 2s;
-        const regionIprime = descendantsOf(childUnused, true);
-        await blinkNodes(regionIprime, 1500);
-        if(stopRequested) break;
-
-        // if no descendent of i' (including i') is in A:
-        const hasInIprime = regionIprime.some(d => selected.has(d));
-        if(!hasInIprime){
-          // then put i in good, shade the region containing i, i' and the descendents of i';
-          removeFromUndecided(i);
-          goodSet.push(i);
-          shadeNodes([i, ...regionIprime], 'good'); // shade i and regionIprime
-          updateLists();
-        } else {
-          // otherwise:
-          // pick the smallest k in A that is a descendent of i';
-          const kCandidates = regionIprime.filter(d => selected.has(d)).sort((a,b)=>a-b);
-          const k = kCandidates[0];
-          // put j and k in undec(), put i in bad();
-          undecSet.push(j);
-          undecSet.push(k);
-          removeFromUndecided(i);
-          badSet.push(i);
-          // Cross out (X) the node i;
-          crossOut(i);
-          // shade j and k with auxiliary shading (undec) and shade i as bad
-          shadeNodes([j,k], 'aux');
-          shadeNodes([i], 'bad');
-          updateLists();
+  const touches = new Map();
+  let drag = null;
+  const local = e => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  canvas.addEventListener('pointerdown', e => {
+    touches.set(e.pointerId, 1);
+    if (touches.size > 1 || locked()) return;
+    const [x, y] = local(e);
+    if (navToken) navToken.cancelled = true;
+    if (e.shiftKey && stage === 1) {
+      const S = readNum('S', 0, 200, 1, true);
+      if (mode === 'sprinkle') sprinkle(S);
+      else {
+        let best = null, bd = Infinity;
+        for (const v of visibleVerts) { const [px, py] = scr(v.x, v.y), d = Math.hypot(px - x, py - y); if (d < bd) { bd = d; best = v; } }
+        if (best) {
+          const v0 = mulw(B.u, best.relU), v = placeSpaced(v0, S);
+          if (v !== null) { points.push(mkPoint(v)); $('status1').textContent = v === v0 ? '' : `P${points.length} was pushed to keep its spacing.`; }
+          else $('status1').textContent = 'No room for a point there at this spacing.';
         }
       }
-    } // end if i in A
-  } // end for
-  running = false;
-}
-
-// wire up buttons
-$('resetBtn').addEventListener('click', ()=>{
-  if(running) return;
-  selected.clear();
-  goodSet.splice(0,goodSet.length);
-  badSet.splice(0,badSet.length);
-  undecSet.splice(0,undecSet.length);
-  // clear visuals
-  for(let i=0;i<N;i++){
-    const g = nodeElem(i);
-    g.classList.remove('selected','shaded-good','shaded-bad','shaded-aux','blink');
-    crossElem(i).forEach(line => line.setAttribute('visibility','hidden'));
+      draw(true);
+      return;
+    }
+    drag = { x0: x, y0: y, lx: x, ly: y, moved: false };
+    canvas.setPointerCapture(e.pointerId);
+    canvas.classList.add('dragging');
+  });
+  canvas.addEventListener('pointermove', e => {
+    canvas.classList.toggle('adding', e.shiftKey && !drag && stage === 1 && !run);
+    if (!drag) return;
+    const [x, y] = local(e);
+    if (Math.hypot(x - drag.x0, y - drag.y0) > 4) drag.moved = true;
+    if (!drag.moved) return;
+    moveBase((x - drag.lx) / SCL, -(y - drag.ly) / SCL);
+    drag.lx = x; drag.ly = y;
+    draw();
+  });
+  function endPointer(e) {
+    touches.delete(e.pointerId);
+    if (!drag) return;
+    const d = drag; drag = null;
+    canvas.classList.remove('dragging');
+    if (!d.moved && e.type === 'pointerup') {
+      const [mx, my] = local(e);
+      let best = -1, bd = 12;
+      points.forEach((p, i) => { const P = screenOfPoint(p), dd = Math.hypot(P.x - mx, P.y - my); if (dd < bd) { bd = dd; best = i; } });
+      if (best >= 0) goToPoint(best);
+      else {
+        let bv = null, bvd = 10;
+        for (const v of visibleVerts) { const [px, py] = scr(v.x, v.y), dd = Math.hypot(px - mx, py - my); if (dd < bvd) { bvd = dd; bv = v; } }
+        if (bv) goToVertex(mulw(B.u, bv.relU));
+      }
+    }
+    draw(true);
   }
-  const edges = svgWrap.querySelectorAll('line.edge');
-edges.forEach(edge => {
-  edge.classList.remove('shaded-good', 'shaded-bad', 'shaded-aux');
-});
-  refreshSelections();
-});
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Shift' && !drag && stage === 1 && !run) canvas.classList.add('adding');
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === ' ' && run && e.target === document.body) { e.preventDefault(); run.paused ? resume(run) : pause(run); }
+  });
+  window.addEventListener('keyup', e => { if (e.key === 'Shift') canvas.classList.remove('adding'); });
 
-$('runBtn').addEventListener('click', async ()=>{
-  if(running) return;
-  runAlgorithm();
-});
+  // =====================================================================
+  // Shared controls
+  // =====================================================================
+  $('hull').onclick = () => { showHull = !showHull; $('hull').setAttribute('aria-pressed', String(showHull)); draw(true); };
+  $('mode').onclick = () => setMode(mode === 'manual' ? 'sprinkle' : 'manual');
+  $('R').addEventListener('input', () => draw());
+  const resetView = () => { if (!locked()) { if (navToken) navToken.cancelled = true; setBase({ u: '', g: '', t: 0 }); draw(true); } };
+  $('reset').onclick = $('reset2').onclick = $('reset3').onclick = resetView;
+  $('undo').onclick = () => { points.pop(); focusPt = -1; $('status1').textContent = ''; draw(true); };
+  $('clear').onclick = () => { points = []; shape = null; focusPt = -1; $('status1').textContent = ''; draw(true); };
+  function showStage(n) {
+    stage = n; focusPt = -1;
+    [1, 2, 3].forEach(k => $('stage' + k).hidden = k !== n);
+    canvas.classList.remove('adding');
+    hideBanner();
+    draw(true);
+  }
+  function showBanner(kind, big, small) {
+    const b = $('banner');
+    b.className = 'banner' + (kind ? ' ' + kind : '');
+    $('bannerBig').textContent = big; $('bannerSmall').textContent = small;
+    b.hidden = false;
+  }
+  function hideBanner() { $('banner').hidden = true; }
 
-$('pauseBtn').addEventListener('click', () => {
-  if (!running) return;
-  paused = !paused;
-  $('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
-});
+  $('next1').onclick = () => {
+    if (!points.length) return;
+    const Rp = readNum('Rp', 0, 200, 1);
+    const seen = new Set();
+    points = points.filter(p => !seen.has(p.w) && seen.add(p.w));
+    points.sort((p, q) => p.w.length - q.w.length || (planarKey(p.w) < planarKey(q.w) ? -1 : 1));
+    const before = points.length;
+    const keptW = new Set(greedySeparated(points.map(p => p.w), Rp));
+    points = points.filter(p => keptW.has(p.w));
+    points.forEach(p => p.status = null);
+    scene = { current: -1, flash: null, best: null, outside: null };
+    setFilter('all');
+    $('status2').textContent = `A′ has ${points.length} of ${before} points (R′ = ${Rp}). Press Start to begin.`;
+    $('next2').disabled = true;
+    showStage(2);
+  };
+  $('back2').onclick = () => { if (run) run.cancelled = true; points.forEach(p => p.status = null); scene = { current: -1, flash: null, best: null, outside: null }; showStage(1); };
+  function setFilter(f) {
+    filter2 = f;
+    $('fAll').setAttribute('aria-pressed', String(f === 'all'));
+    $('fYay').setAttribute('aria-pressed', String(f === 'yay'));
+    $('fUh').setAttribute('aria-pressed', String(f === 'uh'));
+    draw(true);
+  }
+  $('fAll').onclick = () => setFilter('all');
+  $('fYay').onclick = () => setFilter('yay');
+  $('fUh').onclick = () => setFilter('uh');
 
-// initial render
-refreshSelections();
+  function setRunning(on) {
+    for (const k of [2, 3]) {
+      $('start' + k).disabled = on; $('skip' + k).disabled = !on; $('stop' + k).disabled = !on;
+      $('pause' + k).disabled = !on; $('pause' + k).textContent = 'Pause';
+      $('reset' + k).disabled = on; $('back' + k).disabled = on;
+    }
+    ['D', 'K', 'F', 'D3', 'r3'].forEach(id => $(id).disabled = on);
+    ['fAll', 'fYay', 'fUh'].forEach(id => $(id).disabled = on);
+    if (on) $('next2').disabled = true;
+    canvas.classList.toggle('busy', on);
+  }
+  function setPausedUI(on) {
+    const st = $('status' + stage);
+    $('pause' + stage).textContent = on ? 'Resume' : 'Pause';
+    $('reset' + stage).disabled = !on;
+    canvas.classList.toggle('busy', !on);
+    if (on) { run.statusText = st.textContent; st.textContent = 'Paused. Drag or click a point to look around; Resume returns to the run.'; }
+    else if (run && run.statusText != null) st.textContent = run.statusText;
+  }
+  function pause(t) {
+    if (t.paused || t.skip || t.cancelled) return;
+    t.paused = true; t.savedBase = { ...B }; t.savedVer = viewVer;
+    setPausedUI(true); draw(true);
+  }
+  async function resume(t) {
+    if (!t.paused || t.resuming) return;
+    t.resuming = true;
+    if (navToken) navToken.cancelled = true;
+    if (viewVer !== t.savedVer) await animateTo(t.savedBase.u, { cancelled: false, skip: false }, 400);
+    setBase({ ...t.savedBase });
+    t.paused = false; t.resuming = false;
+    setPausedUI(false); release(t); draw(true);
+  }
+  $('pause2').onclick = $('pause3').onclick = () => { const t = run; if (!t) return; t.paused ? resume(t) : pause(t); };
+  $('skip2').onclick = $('skip3').onclick = async () => { const t = run; if (!t) return; if (t.paused) await resume(t); t.skip = true; release(t); };
+  $('stop2').onclick = $('stop3').onclick = () => { const t = run; if (!t) return; t.cancelled = true; t.paused = false; release(t); };
+  let lastYield = 0;
+  async function breathe(token, msg) {
+    const now = performance.now();
+    if (now - lastYield < 60) return;
+    lastYield = now;
+    if (msg) showBanner('', '', msg);
+    await frame();
+    await gate(token);
+  }
 
+  // =====================================================================
+  // Stage 2: scan the halfspaces at distance D from every point
+  // =====================================================================
+  $('start2').onclick = async () => {
+    if (run || !points.length) return;
+    const D = readNum('D', 1, 200, 2, true), K = readNum('K', 0, 1e9, 3, true), Fms = readNum('F', 0, 2000, 100);
+    const token = { cancelled: false, skip: false };
+    run = token; setRunning(true); setFilter('all');
+    points.forEach(p => p.status = null);
+    const n = points.length, sphereSize = 4 * Math.pow(3, D - 1);
+    const fullSphere = sphereSize <= 100 ? sphere(D, 100) : null;
+    let yay = 0, uh = 0;
 
+    for (let i = 0; i < n && !token.cancelled; i++) {
+      const Pi = points[i].w;
+      scene = { current: i, flash: null, best: null, outside: null };
+      if (!token.skip) { showBanner('', '', `P${i + 1} of ${n}: moving to the point`); $('status2').textContent = `P${i + 1} of ${n}`; await animateTo(Pi, token); }
+      if (token.cancelled) break;
 
+      const rels = points.map(p => rel(Pi, p.w));
+      const counts = new Map();
+      for (const r of rels) if (r.length >= D) { const k = r.slice(0, D); counts.set(k, (counts.get(k) || 0) + 1); }
+      let scan = fullSphere || [...counts.keys()].sort((a, b) => planarKey(a) < planarKey(b) ? -1 : 1);
+      if (scan.length < 2) scan = [...new Set([...scan, ...sphere(D, 2)])].sort((a, b) => planarKey(a) < planarKey(b) ? -1 : 1);
+      const hs = scan.map(p => ({ base: Pi, p, r: 0 })), cnt = scan.map(p => counts.get(p) || 0);
+      if (!token.skip) {
+        for (let k = 0; k < hs.length; k++) {
+          scene.flash = { h: hs[k], cnt: cnt[k] };
+          showBanner('', '', `P${i + 1} of ${n}: halfspace ${k + 1} of ${hs.length} contains ${cnt[k]}`);
+          draw();
+          if (Fms > 0) await psleep(token, Fms); else if (k % 10 === 9) { await frame(); await gate(token); }
+          if (token.cancelled || token.skip) break;
+        }
+      }
+      if (token.cancelled) break;
+      scene.flash = null;
 
+      // two different halfspaces at the same distance from P_i are disjoint, so the second is simply the next best
+      const order = cnt.map((c, k) => k).sort((a, b) => cnt[b] - cnt[a]);
+      const h1 = hs[order[0]], h2 = hs[order[1]];
+      const outside = [];
+      rels.forEach((r, j) => { if (!inHS(r, h1) && !inHS(r, h2)) outside.push(j); });
+      const ok = outside.length <= K;
+      points[i].status = ok ? 'yay' : 'uh';
+      ok ? yay++ : uh++;
+      if (!token.skip) {
+        scene.best = [{ h: h1, cnt: cnt[order[0]] }, { h: h2, cnt: cnt[order[1]] }];
+        scene.outside = new Set(outside);
+        showBanner(ok ? 'yay' : 'uh', ok ? 'Yay' : 'Uh oh.', `P${i + 1}: ${outside.length} outside the two halfspaces (K = ${K})`);
+        draw(true);
+        await psleep(token, Math.max(700, Math.min(1600, Fms * 12)));
+      } else await breathe(token, `Skipping: P${i + 1} of ${n}`);
+    }
+
+    const stopped = token.cancelled;
+    if (token.skip && !stopped && n) setBase({ u: points[n - 1].w, g: '', t: 0 });
+    run = null; setRunning(false);
+    scene = { current: -1, flash: null, best: null, outside: null };
+    hideBanner();
+    const done = points.every(p => p.status);
+    $('status2').textContent = (stopped ? `Stopped after ${yay + uh} of ${n}: ` : 'Done: ') + `${yay} Yay, ${uh} Uh oh.` +
+      (done && !uh ? ' No red points, so there is nothing for stage 3.' : '');
+    $('next2').disabled = !(done && uh > 0);
+    draw(true);
+  };
+
+  // =====================================================================
+  // Stage 3
+  // =====================================================================
+  function initStage3() {
+    const list = points.map((p, i) => i).filter(i => points[i].status === 'uh');
+    s3 = { list, rank: new Set(list), white: list[0], G: new Set(), B: new Set(), U: new Set(),
+      cover: new Set(), regions: [], tempGray: new Set(), current: -1, H1: null, H2: null, rec: {}, edges: [] };
+    renderUrns();
+  }
+  $('next2').onclick = () => {
+    $('D3').value = $('D').value;
+    initStage3();
+    $('status3').textContent = `A″ has ${s3.list.length} points. Press Start to begin.`;
+    showStage(3);
+  };
+  function setHsShow(v) {
+    hsShow = v;
+    $('hsOff').setAttribute('aria-pressed', String(v === 'off'));
+    $('hsH1').setAttribute('aria-pressed', String(v === 'h1'));
+    $('hsH12').setAttribute('aria-pressed', String(v === 'h12'));
+    draw();
+  }
+  $('hsOff').onclick = () => setHsShow('off');
+  $('hsH1').onclick = () => setHsShow('h1');
+  $('hsH12').onclick = () => setHsShow('h12');
+  for (const [id, cat] of [['lnOB', 'ob'], ['lnU1', 'u1'], ['lnU2', 'u2']]) {
+    $(id).onclick = () => { lineageOn[cat] = !lineageOn[cat]; $(id).setAttribute('aria-pressed', String(lineageOn[cat])); draw(); };
+  }
+  $('lnArrow').onclick = () => { lineageArrows = !lineageArrows; $('lnArrow').setAttribute('aria-pressed', String(lineageArrows)); draw(); };
+  $('back3').onclick = () => { if (run) run.cancelled = true; s3 = null; showStage(2); };
+
+  const urnEls = { B: $('mB'), G: $('mG'), U: $('mU') };
+  function renderUrns() {
+    if (!s3) return;
+    for (const key of ['B', 'G', 'U']) {
+      const el = urnEls[key], want = new Set(s3[key]);
+      for (const m of [...el.children]) if (!want.has(+m.dataset.id)) m.remove();
+      const have = new Set([...el.children].map(m => +m.dataset.id));
+      for (const i of s3.list) {
+        if (!want.has(i) || have.has(i)) continue;
+        const m = document.createElement('div');
+        m.className = 'm'; m.dataset.id = i;
+        m.textContent = s3.list.indexOf(i) + 1;
+        m.title = `Point ${s3.list.indexOf(i) + 1} of A″`;
+        el.appendChild(m);
+      }
+      $('c' + key).textContent = s3[key].size;
+    }
+  }
+  const moveTo = (i, key) => { s3.U.delete(i); s3.G.delete(i); s3.B.delete(i); s3[key].add(i); };
+  // the length-D prefix of the direction toward a point; a point closer than D is passed straight through
+  function dirWord(r, D) {
+    if (!r) return 'b'.repeat(D);
+    return r.length >= D ? r.slice(0, D) : r + r[r.length - 1].repeat(D - r.length);
+  }
+
+  $('start3').onclick = async () => {
+    if (run || !s3 || !s3.list.length) return;
+    initStage3();
+    const D = readNum('D3', 1, 200, 2, true), rr = readNum('r3', 0, 200, 0, true);
+    const token = { cancelled: false, skip: false };
+    run = token; setRunning(true);
+    const L = s3.list, m = L.length;
+    let lastPi = -1;
+
+    for (let a = 0; a < m && !token.cancelled; a++) {
+      const pi = L[a], Pi = points[pi].w;
+      s3.current = pi; s3.H1 = s3.H2 = null; s3.tempGray.clear();
+      const tag = `Point ${a + 1} of ${m}`;
+      if (!token.skip) { showBanner('', '', `${tag}: moving to the point`); $('status3').textContent = tag; await animateTo(Pi, token, 300); }
+      if (token.cancelled) break;
+      lastPi = pi;
+
+      const rels = points.map(p => rel(Pi, p.w));
+      const H1 = { base: Pi, p: dirWord(rels[s3.white], D), r: rr };
+      s3.H1 = H1; s3.rec[pi] = { H1, H2: null };
+      if (!token.skip) { showBanner('', '', `${tag}: ${rr > 0 ? 'modified halfspace H1′' : 'halfspace H1'} toward the white point`); draw(); }
+      await wait(500, token);
+
+      const out1 = L.filter(j => j !== pi && !inHS(rels[j], H1));
+      const nearest = arr => arr.reduce((b, j) => rels[j].length < rels[b].length ? j : b, arr[0]);
+      let kind, msg;
+      if (!out1.length) {
+        kind = 'yay'; msg = 'Nice';
+        const members = points.map((p, j) => j).filter(j => !inHS(rels[j], H1));
+        members.forEach(j => s3.cover.add(j));
+        s3.regions.push({ center: pi, members });
+        moveTo(pi, 'G');
+      } else {
+        const g1 = nearest(out1);
+        s3.tempGray.add(g1);
+        if (!token.skip) { showBanner('hold', 'Hold on...', `${tag}: ${out1.length} red point${out1.length > 1 ? 's' : ''} outside ${hsLabel(1, H1)}`); draw(true); }
+        await wait(300, token);
+        const H2 = { base: Pi, p: dirWord(rels[g1], D), r: rr };
+        s3.H2 = H2; s3.rec[pi].H2 = H2;
+        if (!token.skip) draw();
+        await wait(500, token);
+        const out12 = L.filter(j => j !== pi && !inHS(rels[j], H1) && !inHS(rels[j], H2));
+        if (!out12.length) {
+          kind = 'yay'; msg = 'Phew!';
+          const members = points.map((p, j) => j).filter(j => !inHS(rels[j], H1) && !inHS(rels[j], H2));
+          members.forEach(j => s3.cover.add(j));
+          s3.regions.push({ center: pi, members });
+          moveTo(pi, 'G');
+        } else {
+          kind = 'uh'; msg = 'I give up';
+          moveTo(pi, 'B');
+          const g2 = nearest(out12);
+          s3.tempGray.add(g2);
+          for (const g of [g1, g2]) if (!s3.G.has(g) && !s3.B.has(g)) s3.U.add(g);
+          if (pi !== s3.white) s3.edges.push([s3.white, pi, 'ob']);
+          s3.edges.push([pi, g1, 'u1']);
+          if (g2 !== g1) s3.edges.push([pi, g2, 'u2']);
+        }
+      }
+      if (token.cancelled) break;
+      renderUrns();
+      if (!token.skip) {
+        showBanner(kind, msg, tag);
+        draw(true);
+        await psleep(token, 300);
+        await psleep(token, 700);
+      } else await breathe(token, `Skipping: point ${a + 1} of ${m}`);
+    }
+
+    const stopped = token.cancelled;
+    if (token.skip && lastPi >= 0) setBase({ u: points[lastPi].w, g: '', t: 0 });
+    run = null; setRunning(false);
+    s3.current = -1; s3.H1 = s3.H2 = null; s3.tempGray.clear();
+    hideBanner(); renderUrns();
+    $('status3').textContent = (stopped ? 'Stopped. ' : 'Done. ') + `Good ${s3.G.size}, Bad ${s3.B.size}, Undecided ${s3.U.size}.`;
+    draw(true);
+  };
+
+  setMode('manual');
+  new ResizeObserver(resize).observe(canvas.parentElement);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => draw(true));
+  if (document.fonts) document.fonts.ready.then(() => draw(true));
+})();
 </script>
 </body>
 </html>
