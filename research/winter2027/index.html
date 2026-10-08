@@ -9,7 +9,7 @@
     max-width: 760px;
     margin: 0 auto;
     padding: 32px 20px 48px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+
     font-size: 16px;
     line-height: 1.5;
     color: #24292e;
@@ -33,15 +33,37 @@
   td.excursion { font-style: italic; color: #586069; }
   .talk p { margin: 0.2em 0; }
   footer { color: #586069; font-size: 0.9em; }
+  .rw { margin: 0 0 8px; }
+  #rw-canvas { display: block; width: 100%; max-width: 460px; aspect-ratio: 1 / 1; margin: 0 auto; touch-action: none; cursor: grab; }
+  #rw-canvas:active { cursor: grabbing; }
+  .rw-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .rw-buttons button, .rw-btn {
+    font: inherit; font-size: 14px; color: #24292e; background: #fafbfc;
+    border: 1px solid #d1d5da; border-radius: 6px; padding: 5px 14px; cursor: pointer; line-height: 1.5;
+  }
+  .rw-buttons button:hover:not(:disabled), .rw-btn:hover { background: #f3f4f6; text-decoration: none; }
+  .rw-buttons button:disabled { opacity: 0.5; cursor: default; }
+  .rw-buttons button:focus-visible, .rw-btn:focus-visible { outline: 2px solid #0366d6; outline-offset: 2px; }
 </style>
 </head>
 <body>
 
 <h1>Winter school 2026-27: Around random walks and groups</h1>
 
+<div class="rw">
+  <canvas id="rw-canvas" aria-label="A random walk on a genus-2 surface, drawn in the Poincaré disc. Drag to move; double-click to recenter."></canvas>
+  <div class="rw-buttons">
+    <button type="button" id="rw-one">Random walk</button>
+  </div>
+  <div class="rw-buttons">
+    <a class="rw-btn" href="https://inhyeokchoi48.github.io/research/rw">More&hellip;</a>
+  </div>
+</div>
+
+
 <h4>Date: January 25&ndash;29, 2027</h4>
 <h4>Venue: Room 8101, <a href="https://www.kias.re.kr/kias/main/contents.do?menuNo=407011">KIAS</a></h4>
-<h4>Organizer: Inhyeok Choi (inhyeokchoi48@gmail.com)</h4>
+<h4>Organizer: <a href="https://inhyeokchoi48.github.io">Inhyeok Choi</a> (inhyeokchoi48@gmail.com)</h4>
 <hr>
 
 <h4><a href="#speakers">Speakers</a> / <a href="#schedule">Schedule</a> / <a href="#abstracts">Titles and abstracts</a> / <a href="#registration">Registration</a></h4>
@@ -52,11 +74,11 @@
 
 <h2 id="speakers">Mini-course speakers</h2>
 <ul>
-  <li>Timothée Bénard <span class="affil">(CNRS, Université Sorbonne Paris Nord)</span></li>
-  <li>Joshua Frisch <span class="affil">(University of California, San Diego)</span></li>
-  <li>Ilya Gekhtman <span class="affil">(Technion)</span></li>
-  <li>Alessandro Sisto <span class="affil">(Heriot-Watt University)</span></li>
-  <li>Giulio Tiozzo <span class="affil">(Sapienza Università di Roma)</span></li>
+  <li><a href="https://www.tbenardmath.com">Timothée Bénard</a> <span class="affil">(CNRS, Université Sorbonne Paris Nord)</span></li>
+  <li><a href="http://joshfrisch.com">Joshua Frisch</a> <span class="affil">(University of California, San Diego)</span></li>
+  <li><a href="https://sites.google.com/site/ilyagekhtman/">Ilya Gekhtman</a> <span class="affil">(Technion)</span></li>
+  <li><a href="https://alexsisto.net">Alessandro Sisto</a> <span class="affil">(Heriot-Watt University)</span></li>
+  <li><a href="https://sites.google.com/uniroma1.it/giuliotiozzo/home-page?authuser=0">Giulio Tiozzo</a> <span class="affil">(Sapienza Università di Roma)</span></li>
 </ul>
 
 <h2 id="schedule">Schedule (tentative)</h2>
@@ -134,5 +156,544 @@
 
 <footer>Last update: 2026.10.07.</footer>
 
+
+<script>
+(() => {
+  const add = (p, q) => [p[0] + q[0], p[1] + q[1]];
+  const sub = (p, q) => [p[0] - q[0], p[1] - q[1]];
+  const mul = (p, q) => [p[0]*q[0] - p[1]*q[1], p[0]*q[1] + p[1]*q[0]];
+  const conj = p => [p[0], -p[1]];
+  const abs2 = p => p[0]*p[0] + p[1]*p[1];
+  const div = (p, q) => { const d = abs2(q); return [(p[0]*q[0] + p[1]*q[1]) / d, (p[1]*q[0] - p[0]*q[1]) / d]; };
+  const neg = p => [-p[0], -p[1]];
+  const atanhC = x => Math.atanh(Math.min(x, 1 - 1e-16));
+  const I = [0, 1];
+  const TAU = 2 * Math.PI, LN2 = Math.LN2;
+  const wrap = x => { x = (x + Math.PI) % TAU; if (x < 0) x += TAU; return x - Math.PI; };
+
+  // z -> (a z + b)/(conj(b) z + conj(a)), |a|^2 - |b|^2 = 1
+  const apply = (m, z) => div(add(mul(m.a, z), m.b), add(mul(conj(m.b), z), conj(m.a)));
+  const normalize = m => {
+    const s = Math.sqrt(Math.max(abs2(m.a) - abs2(m.b), 1e-300));
+    return { a: [m.a[0]/s, m.a[1]/s], b: [m.b[0]/s, m.b[1]/s] };
+  };
+  const compose = (m1, m2) => normalize({
+    a: add(mul(m1.a, m2.a), mul(m1.b, conj(m2.b))),
+    b: add(mul(m1.a, m2.b), mul(m1.b, conj(m2.a)))
+  });
+  const inverse = m => ({ a: conj(m.a), b: neg(m.b) });
+  const translateFromOrigin = p => normalize({ a: [1, 0], b: p });
+  const rotation = t => ({ a: [Math.cos(t / 2), Math.sin(t / 2)], b: [0, 0] });
+  const IDENTITY = { a: [1, 0], b: [0, 0] };
+  function translationAlong(z0, z1) {
+    const T = translateFromOrigin(z0), w = apply(inverse(T), z1);
+    return compose(T, compose(translateFromOrigin(w), inverse(T)));
+  }
+  const hdist = (z, w) => 2 * atanhC(Math.sqrt(abs2(sub(z, w)) / abs2(sub([1, 0], mul(conj(z), w)))));
+  const cayley = z => mul(I, div(add([1, 0], z), sub([1, 0], z)));
+  const uncayley = w => div(sub(w, I), add(w, I));
+  const csqrtD = z => { const r = Math.sqrt(abs2(z)); const re = Math.sqrt((r + z[0]) / 2), im = Math.sqrt(Math.max(0, (r - z[0]) / 2)); return [re, z[1] < 0 ? -im : im]; };
+  const mm2 = (A, B) => [[add(mul(A[0][0], B[0][0]), mul(A[0][1], B[1][0])), add(mul(A[0][0], B[0][1]), mul(A[0][1], B[1][1]))],
+                         [add(mul(A[1][0], B[0][0]), mul(A[1][1], B[1][0])), add(mul(A[1][0], B[0][1]), mul(A[1][1], B[1][1]))]];
+  function dilation(x0, lam) {          // half-plane w -> x0 + lam (w - x0), as a disc isometry
+    const C = [[I, I], [[-1, 0], [1, 0]]], Ci = [[[1, 0], [0, -1]], [[1, 0], I]];
+    const A = [[[lam, 0], [x0 * (1 - lam), 0]], [[0, 0], [1, 0]]];
+    const G = mm2(Ci, mm2(A, C));
+    const s = csqrtD(sub(mul(G[0][0], G[1][1]), mul(G[0][1], G[1][0])));
+    return normalize({ a: div(G[0][0], s), b: div(G[0][1], s) });
+  }
+
+  // =====================================================================
+  // High precision: fixed-point BigInt with PN fractional bits.
+  // A point at distance d from a reference has 1 - |z| ~ 2e^{-d}, so 768 bits
+  // resolve distances up to roughly 480 with full double accuracy.
+  // =====================================================================
+  const PN = 768, P = BigInt(PN), ONE = 1n << P, TWO_P = Math.pow(2, PN);
+  function fx(x) {                       // double -> fixed point, exact
+    if (!x || !isFinite(x)) return 0n;
+    const e = Math.floor(Math.log2(Math.abs(x)));
+    if (e < -PN - 2) return 0n;
+    const m = Math.round(x * Math.pow(2, 52 - e));
+    const sh = PN + e - 52;
+    return sh >= 0 ? BigInt(m) << BigInt(sh) : BigInt(m) >> BigInt(-sh);
+  }
+  const toNum = X => Number(X) / TWO_P;
+  const lnFx = X => Math.log(Number(X)) - PN * LN2;      // X > 0
+  const fxC = z => [fx(z[0]), fx(z[1])];
+  const toNumC = z => [toNum(z[0]), toNum(z[1])];
+  const cadd = (x, y) => [x[0] + y[0], x[1] + y[1]];
+  const csub = (x, y) => [x[0] - y[0], x[1] - y[1]];
+  const cneg = x => [-x[0], -x[1]];
+  const cmul = (x, y) => [(x[0]*y[0] - x[1]*y[1]) >> P, (x[0]*y[1] + x[1]*y[0]) >> P];
+  const cscale = (x, r) => [(x[0] * r) >> P, (x[1] * r) >> P];
+  const cabs2 = x => (x[0]*x[0] + x[1]*x[1]) >> P;
+  function cdiv(n, d) {
+    const den = d[0]*d[0] + d[1]*d[1];
+    return [((n[0]*d[0] + n[1]*d[1]) << P) / den, ((n[1]*d[0] - n[0]*d[1]) << P) / den];
+  }
+  const cross = (a, b) => a[0]*b[1] - a[1]*b[0];
+  function bitLen(x) {
+    if (x < 0n) x = -x;
+    if (x === 0n) return 0;
+    const h = x.toString(16);
+    return (h.length - 1) * 4 + (32 - Math.clz32(parseInt(h[0], 16)));
+  }
+  function isqrt(n) {
+    if (n < 2n) return n;
+    const L = bitLen(n);
+    let x;
+    if (L < 1000) x = BigInt(Math.floor(Math.sqrt(Number(n))));
+    else { const s = BigInt((L - 900) & ~1); x = BigInt(Math.floor(Math.sqrt(Number(n >> s)))) << (s / 2n); }
+    x = x + (x >> 20n) + 2n;                // start above the root
+    for (;;) { const y = (x + n / x) >> 1n; if (y >= x) return x; x = y; }
+  }
+  const fsqrt = X => isqrt(X << P);
+  function hpNormalize(z) { const r = fsqrt(cabs2(z)); return r ? [(z[0] << P) / r, (z[1] << P) / r] : [ONE, 0n]; }
+  // tanh(x) for x >= 0, accurate to the last bit even when it is 1 - tiny
+  const tanhFx = x => x < 1 ? fx(Math.tanh(x)) : ONE - fx(2 / (Math.exp(2 * x) + 1));
+  function halfAngleFx(theta) {          // e^{i theta/2}, exact at multiples of pi/2
+    const h = theta / 2, k = Math.round(h / (Math.PI / 2));
+    if (Math.abs(h - k * Math.PI / 2) < 1e-12) return [[ONE, 0n], [0n, ONE], [-ONE, 0n], [0n, -ONE]][((k % 4) + 4) % 4];
+    return [fx(Math.cos(h)), fx(Math.sin(h))];
+  }
+  // projective isometries {a, b}: z -> (a z + b)/(conj(b) z + conj(a)); only the ratio matters
+  const HP_ID = { a: [ONE, 0n], b: [0n, 0n] };
+  function hpApply(M, z) {
+    const a = M.a, b = M.b;
+    const n = [((a[0]*z[0] - a[1]*z[1]) >> P) + b[0], ((a[0]*z[1] + a[1]*z[0]) >> P) + b[1]];
+    const d = [((b[0]*z[0] + b[1]*z[1]) >> P) + a[0], ((b[0]*z[1] - b[1]*z[0]) >> P) - a[1]];
+    return cdiv(n, d);
+  }
+  function renorm(M) {
+    const m = [M.a[0], M.a[1], M.b[0], M.b[1]].reduce((s, v) => { const av = v < 0n ? -v : v; return av > s ? av : s; }, 0n);
+    const sh = bitLen(m) - (PN + 2);
+    const f = sh > 0 ? v => v >> BigInt(sh) : v => v << BigInt(-sh);
+    return { a: [f(M.a[0]), f(M.a[1])], b: [f(M.b[0]), f(M.b[1])] };
+  }
+  const hpCompose = (M1, M2) => renorm({
+    a: cadd(cmul(M1.a, M2.a), cmul(M1.b, [M2.b[0], -M2.b[1]])),
+    b: cadd(cmul(M1.a, M2.b), cmul(M1.b, [M2.a[0], -M2.a[1]]))
+  });
+  const hpInverse = M => ({ a: [M.a[0], -M.a[1]], b: [-M.b[0], -M.b[1]] });
+  const hpTranslate = p => ({ a: [ONE, 0n], b: p });                 // sends 0 to p
+  const hpRot = theta => ({ a: halfAngleFx(theta), b: [0n, 0n] });
+  const hpUnit = theta => hpApply(hpRot(theta), [ONE, 0n]);
+  const hpPolar = (rho, phi) => cscale(hpUnit(phi), tanhFx(rho / 2));
+  const hpFromIso = m => renorm({ a: fxC(m.a), b: fxC(m.b) });
+  function isoFromHP(M) {                 // null when the map moves things too far for doubles
+    const p = toNumC(cdiv(M.b, M.a)), r2 = abs2(p);
+    if (!(r2 < 1 - 1e-10)) return null;
+    const psi = Math.atan2(toNum(M.a[1]), toNum(M.a[0])), s = 1 / Math.sqrt(1 - r2);
+    const a = [Math.cos(psi) * s, Math.sin(psi) * s];
+    return { a, b: mul(a, p) };
+  }
+
+  // a stored point: high-precision world position plus cached doubles
+  function makePoint(w) {
+    let a2 = cabs2(w);
+    if (a2 >= ONE) { w = cscale(w, ONE - (ONE >> 700n)); a2 = cabs2(w); }
+    const oz = ONE - a2, lez = lnFx(oz), m = Math.sqrt(toNum(a2));
+    return { w, zd: toNumC(w), rho: 2 * Math.log1p(m) - lez, lez, lc: [0, 0] };
+  }
+  // exact hyperbolic distance between stored points
+  function pdist(p, q) {
+    if (p.rho < 17 && q.rho < 17) return hdist(p.zd, q.zd);
+    const A = cabs2(csub(p.w, q.w));
+    if (A <= 0n) return 0;
+    const L = LN2 + lnFx(A) - p.lez - q.lez;   // ln(cosh d - 1)
+    if (L > 40) return LN2 + L;
+    const x = Math.exp(L);
+    return Math.log1p(x + Math.sqrt(x * (x + 2)));
+  }
+  // =====================================================================
+  // The octagon: edge k runs v_k -> v_{k+1}; boundary word a b a^-1 b^-1 c d c^-1 d^-1
+  // =====================================================================
+  const LET = ['a', 'b', 'a', 'b', 'c', 'd', 'c', 'd'], SGN = [1, 1, -1, -1, 1, 1, -1, -1], PART = [2, 3, 0, 1, 6, 7, 4, 5];
+  const LETTERS = ['a', 'b', 'c', 'd'];
+  function regularOctagon() {
+    const R = Math.acosh((1 + Math.SQRT2) ** 2), r = Math.tanh(R / 2);
+    return Array.from({ length: 8 }, (_, k) => { const t = -Math.PI / 2 - Math.PI / 8 + k * Math.PI / 4; return [r * Math.cos(t), r * Math.sin(t)]; });
+  }
+  const dirAt = (z, w) => { const q = div(sub(w, z), sub([1, 0], mul(conj(z), w))); return Math.atan2(q[1], q[0]); };
+  const mod2pi = x => ((x % TAU) + TAU) % TAU;
+  const angles = V => V.map((z, i) => mod2pi(dirAt(z, V[(i + 7) % 8]) - dirAt(z, V[(i + 1) % 8])));
+  const sideLen = (V, k) => hdist(V[k], V[(k + 1) % 8]);
+  function constraints(V) {
+    const L = k => sideLen(V, k), a = angles(V);
+    return [L(0) - L(2), L(1) - L(3), L(4) - L(6), L(5) - L(7), a.reduce((s, x) => s + x, 0) - TAU];
+  }
+  const klein = z => { const s = 2 / (1 + abs2(z)); return [z[0] * s, z[1] * s]; };
+  const unklein = k => { const s = 1 / (1 + Math.sqrt(Math.max(0, 1 - abs2(k)))); return [k[0] * s, k[1] * s]; };
+  function segX(p1, p2, p3, p4) {
+    const o = (a, b, c) => Math.sign((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]));
+    return o(p1, p2, p3) * o(p1, p2, p4) < 0 && o(p3, p4, p1) * o(p3, p4, p2) < 0;
+  }
+  function validOct(X) {
+    if (!X.every(z => abs2(z) < 0.995 * 0.995)) return false;
+    if (Math.hypot(...constraints(X)) > 1e-9) return false;
+    if (!angles(X).every(a => a > 0.01 && a < TAU - 0.01)) return false;
+    const K = X.map(klein);
+    let area = 0;
+    for (let i = 0; i < 8; i++) { const p = K[i], q = K[(i + 1) % 8]; area += p[0] * q[1] - p[1] * q[0]; }
+    if (area <= 0) return false;
+    for (let i = 0; i < 8; i++) for (let j = i + 2; j < 8; j++) {
+      if (i === 0 && j === 7) continue;
+      if (segX(K[i], K[(i + 1) % 8], K[j], K[(j + 1) % 8])) return false;
+    }
+    return true;
+  }
+  function insideOct(V, z) {
+    const K = V.map(klein), p = klein(z);
+    let inside = false;
+    for (let i = 0, j = 7; i < 8; j = i++) {
+      const a = K[i], b = K[j];
+      if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+    }
+    return inside;
+  }
+  function solveLin(A, b) {
+    const n = b.length, M = A.map((r, i) => [...r, b[i]]);
+    for (let c = 0; c < n; c++) {
+      let piv = c;
+      for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[piv][c])) piv = r;
+      if (Math.abs(M[piv][c]) < 1e-18) return null;
+      [M[c], M[piv]] = [M[piv], M[c]];
+      for (let r = 0; r < n; r++) if (r !== c) { const f = M[r][c] / M[c][c]; for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; }
+    }
+    return M.map((r, i) => r[n] / r[i]);
+  }
+  // move vertex k to `target`, then pull the other vertices back onto the constraint set
+  // (paired sides of equal length, angle sum 2 pi) with minimum-norm Newton steps
+  function projectOct(V0, k, target) {
+    const X = V0.map(p => p.slice());
+    if (k >= 0) X[k] = target.slice();
+    const free = [];
+    for (let i = 0; i < 8; i++) if (i !== k) free.push([i, 0], [i, 1]);
+    for (let it = 0; it < 60; it++) {
+      const c = constraints(X);
+      if (Math.hypot(...c) < 1e-13) break;
+      const h = 1e-7, J = c.map(() => new Array(free.length));
+      free.forEach(([i, q], j) => {
+        const o = X[i][q];
+        X[i][q] = o + h; const cp = constraints(X);
+        X[i][q] = o - h; const cm = constraints(X);
+        X[i][q] = o;
+        for (let r = 0; r < 5; r++) J[r][j] = (cp[r] - cm[r]) / (2 * h);
+      });
+      const A = J.map(ri => J.map(rj => ri.reduce((s, v, j) => s + v * rj[j], 0)));
+      const y = solveLin(A, c);
+      if (!y) return null;
+      const step = free.map((_, j) => J.reduce((s, row, r) => s + row[j] * y[r], 0));
+      const sn = Math.hypot(...step), f = sn > 0.05 ? 0.05 / sn : 1;
+      free.forEach(([i, q], j) => { X[i][q] -= f * step[j]; });
+      if (!X.every(z => abs2(z) < 1)) return null;
+    }
+    return validOct(X) ? X : null;
+  }
+
+  // isometry sending x to 0 and y onto the positive real axis
+  function frameAt(x, y) { const G = inverse(translateFromOrigin(x)), w = apply(G, y); return compose(rotation(-Math.atan2(w[1], w[0])), G); }
+  // the isometry with x1 -> x2, y1 -> y2 (equal distances assumed)
+  const pairMap = (x1, y1, x2, y2) => compose(inverse(frameAt(x2, y2)), frameAt(x1, y1));
+  function computeGroup(V) {
+    // sp[k] maps the partner edge onto edge k (reversing it), so sp[k](D) is the tile across edge k
+    const sp = Array.from({ length: 8 }, (_, k) => { const p = PART[k]; return pairMap(V[p], V[(p + 1) % 8], V[(k + 1) % 8], V[k]); });
+    // walk around v0 through the tiles meeting there, find the L-edge leaving (out) or entering v0
+    const findAt = (L, out) => {
+      let M = IDENTITY, j = 0;
+      for (let it = 0; it < 10; it++) {
+        const jn = (j + 1) % 8, jp = (j + 7) % 8;
+        if (LET[j] === L && (SGN[j] === 1) === out) return apply(M, V[jn]);
+        if (LET[jp] === L && (SGN[jp] === -1) === out) return apply(M, V[jp]);
+        M = compose(M, sp[j]); j = (PART[j] + 1) % 8;
+      }
+      return null;
+    };
+    const gens = {}, chainEnds = {};
+    for (const L of LETTERS) {
+      const o = findAt(L, true), i = findAt(L, false);
+      chainEnds[L] = [i, o];
+      gens[L] = pairMap(i, V[0], V[0], o);
+    }
+    const inv = inverse, G = gens;
+    const R = [G.a, G.b, inv(G.a), inv(G.b), G.c, G.d, inv(G.c), inv(G.d)].reduce((m, g) => compose(m, g), IDENTITY);
+    const residual = Math.max(Math.sqrt(abs2(R.b)), Math.abs(R.a[1]));
+    return { sp, gens, residual, chainEnds };
+  }
+  // SU(1,1) disc map -> PSL(2,R) matrix [p, q; r, s] acting on the half-plane (via the Cayley map in use)
+  function toPSL(m) {
+    const M = [[m.a, m.b], [conj(m.b), conj(m.a)]], C = [[I, I], [[-1, 0], [1, 0]]], Ci = [[[1, 0], [0, -1]], [[1, 0], I]];
+    const N = mm2(C, mm2(M, Ci)), k = [0, -0.5];          // divide by 2i
+    let e = [N[0][0], N[0][1], N[1][0], N[1][1]].map(z => mul(z, k)[0]);
+    const det = e[0] * e[3] - e[1] * e[2], s = 1 / Math.sqrt(Math.abs(det));
+    e = e.map(x => x * s);
+    const tr = e[0] + e[3];
+    if (tr < 0 || (Math.abs(tr) < 1e-12 && e[2] < 0)) e = e.map(x => -x);
+    return e;
+  }
+  const transLen = m => 2 * Math.acosh(Math.max(1, Math.abs(m.a[0])));
+  function geodesicSamples(z1, z2, n) {
+    const T = translateFromOrigin(z1), w = apply(inverse(T), z2), rw = Math.sqrt(abs2(w)), tot = atanhC(rw), out = [];
+    for (let k = 0; k <= n; k++) {
+      const s = rw < 1e-15 ? 0 : Math.tanh(k / n * tot) / rw;
+      out.push(apply(T, [w[0] * s, w[1] * s]));
+    }
+    return out;
+  }
+  function tracePolyline(zs, c, moveFirst) {
+    let started = !moveFirst;
+    for (const z of zs) {
+      let [x, y] = toScreen(z);
+      if (!isFinite(x) || !isFinite(y)) continue;
+      x = Math.max(-1e6, Math.min(1e6, x)); y = Math.max(-1e6, Math.min(1e6, y));
+      if (!started) { c.moveTo(x, y); started = true; } else c.lineTo(x, y);
+    }
+  }
+
+
+  // ---------------------------------------------------------------------
+  // View, model (Poincaré disc), screen
+  // ---------------------------------------------------------------------
+  const canvas = document.getElementById('rw-canvas'), ctx = canvas.getContext('2d');
+  let W = 0, H = 0, dpr = 1, RAD = 1, dcx = 0, dcy = 0;
+  let chart = HP_ID, vd = IDENTITY, chartVer = 0;
+  const toScreen = z => [dcx + z[0] * RAD, dcy - z[1] * RAD];
+  const toDisc = (x, y) => { const z = [(x - dcx) / RAD, (dcy - y) / RAD], r = Math.sqrt(abs2(z)); return r > 0.985 ? [z[0] * 0.985 / r, z[1] * 0.985 / r] : z; };
+  const onScreen = (x, y) => isFinite(x) && isFinite(y) && x > -30 && x < W + 30 && y > -30 && y < H + 30;
+  function localOf(w) {
+    const z = toNumC(hpApply(chart, w)), r2 = abs2(z);
+    if (r2 >= 1 - 2e-15) { const k = (1 - 1e-15) / Math.sqrt(r2); return [z[0] * k, z[1] * k]; }
+    return z;
+  }
+  const viewHP = () => hpCompose(hpFromIso(vd), chart);
+  function setViewHP(M) { chart = M; vd = IDENTITY; chartVer++; }
+  function viewMoved() { const q = apply(inverse(vd), [0, 0]); if (abs2(q) > 0.93) { chart = viewHP(); vd = IDENTITY; chartVer++; } }
+  const disp = lc => apply(vd, lc);
+
+  // ---------------------------------------------------------------------
+  // Fundamental domain (regular octagon) and generators: each matrix shifts the
+  // bi-infinite chain ...xxx... through the vertex v0 by one step
+  // ---------------------------------------------------------------------
+  const V = regularOctagon(), grp = computeGroup(V);
+  const GH = [];
+  for (const L of LETTERS) { const h = hpFromIso(grp.gens[L]); GH.push(h, hpInverse(h)); }   // a, a^-1, b, b^-1, ...
+  const Pw = fxC(V[0]);                                   // the starting point is v0
+  const defaultView = () => hpTranslate(cneg(Pw));         // v0 at the center
+
+  // tiles around D (relative), and the anchor tile g(D) holding the view center
+  const spH = grp.sp.map(hpFromIso), spInvH = spH.map(hpInverse);
+  function centerOfD() { const K = V.map(klein); return unklein(K.reduce((s, k) => [s[0] + k[0] / 8, s[1] + k[1] / 8], [0, 0])); }
+  function buildTiles(depth) {
+    const cen = centerOfD(), seen = [cen], list = [V.map(v => v.slice())];
+    let frontier = [IDENTITY];
+    for (let d = 0; d < depth; d++) {
+      const next = [];
+      for (const g of frontier) for (let k = 0; k < 8; k++) {
+        const h = compose(g, grp.sp[k]), c = apply(h, cen);
+        if (!(abs2(c) < 1 - 1e-13) || seen.some(q => hdist(q, c) < 0.05)) continue;
+        seen.push(c); next.push(h); list.push(V.map(v => apply(h, v)));
+      }
+      frontier = next;
+    }
+    return list.map(vs => ({ vs, lc: null }));
+  }
+  const tiles = buildTiles(3);
+  let tilesKey = '', anchor = { gH: HP_ID, src: null, ver: 0 };
+  function nearestWalkElement() {
+    let best = null, bd = Math.tanh(4) ** 2;
+    for (const t of trials) { ensureLocal(t); for (const p of t.pts) { const r2 = abs2(disp(p.lc)); if (r2 < bd) { bd = r2; best = p; } } }
+    return best;
+  }
+  function updateAnchor() {
+    const C = hpApply(hpInverse(viewHP()), [0n, 0n]);
+    let seed;
+    if (makePoint(C).rho < 25) seed = { gH: HP_ID, src: 'origin' };
+    else { const p = nearestWalkElement(); seed = p ? { gH: p.g, src: p } : { gH: anchor.gH, src: anchor.src }; }
+    if (seed.src === anchor.src && insideOct(V, toNumC(hpApply(hpInverse(anchor.gH), C)))) return;
+    let gH = seed.gH, x = hpApply(hpInverse(gH), C), p = centerOfD(), entry = -1;
+    const K = V.map(klein);
+    for (let it = 0; it < 4000; it++) {
+      const xd = toNumC(x);
+      if (insideOct(V, xd)) break;
+      const kp = klein(p), kx = klein(xd), r = [kx[0] - kp[0], kx[1] - kp[1]];
+      let best = -1, bt = Infinity;
+      for (let k = 0; k < 8; k++) {
+        if (k === entry) continue;
+        const A = K[k], B = K[(k + 1) % 8], s = [B[0] - A[0], B[1] - A[1]], den = r[0] * s[1] - r[1] * s[0];
+        if (Math.abs(den) < 1e-300) continue;
+        const w = [A[0] - kp[0], A[1] - kp[1]];
+        const t = (w[0] * s[1] - w[1] * s[0]) / den, u = (w[0] * r[1] - w[1] * r[0]) / den;
+        if (t > 1e-12 && u >= -1e-9 && u <= 1 + 1e-9 && t < bt) { bt = t; best = k; }
+      }
+      if (best < 0) break;
+      const q = unklein([kp[0] + bt * r[0], kp[1] + bt * r[1]]);
+      gH = hpCompose(gH, spH[best]); x = hpApply(spInvH[best], x);
+      p = apply(inverse(grp.sp[best]), q); entry = PART[best];
+    }
+    anchor = { gH, src: seed.src, ver: anchor.ver + 1 };
+  }
+
+  // ---------------------------------------------------------------------
+  // Random walks: P, f(s1)P, f(s1)f(s2)P, ..., f(s1)...f(sn)P
+  // ---------------------------------------------------------------------
+  const STEPS = 15, STEP_MS = 1000;
+  const trials = [];
+  function ensureLocal(t) { if (t.ver !== chartVer) { for (const p of t.pts) p.lc = localOf(p.w); t.ver = chartVer; } }
+  function walkOnce() {
+    let g = HP_ID;
+    const p0 = makePoint(Pw); p0.g = g;
+    const pts = [p0];
+    for (let i = 0; i < STEPS; i++) {
+      g = hpCompose(g, GH[Math.floor(Math.random() * 8)]);
+      const p = makePoint(hpApply(g, Pw)); p.g = g; pts.push(p);
+    }
+    const t = { pts, ver: -1, shown: STEPS, partial: 0 };
+    trials.push(t);
+    return t;
+  }
+
+  // ---------------------------------------------------------------------
+  // Drawing
+  // ---------------------------------------------------------------------
+  const COL = { disc: '#ffffff', rim: '#24292e', tile: '#c3ccd8', fill: '#0366d6', walk: '#d73a49', ink: '#24292e' };
+  function segTo(z1, z2) {
+    const s1 = toScreen(z1), s2 = toScreen(z2);
+    if (!isFinite(s1[0] + s1[1] + s2[0] + s2[1])) return;
+    const L = Math.hypot(s2[0] - s1[0], s2[1] - s1[1]);
+    if (L < 4) { ctx.moveTo(s1[0], s1[1]); ctx.lineTo(s2[0], s2[1]); return; }
+    tracePolyline(geodesicSamples(z1, z2, Math.min(64, Math.max(2, Math.ceil(L / 6)))), ctx, true);
+  }
+  function draw() {
+    if (!W) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.save();
+    ctx.beginPath(); ctx.arc(dcx, dcy, RAD, 0, TAU); ctx.fillStyle = COL.disc; ctx.fill(); ctx.clip();
+    ctx.lineJoin = ctx.lineCap = 'round';
+
+    updateAnchor();
+    const key = chartVer + ':' + anchor.ver;
+    if (key !== tilesKey) {
+      const iso = isoFromHP(hpCompose(chart, anchor.gH));
+      for (const t of tiles) t.lc = iso ? t.vs.map(v => apply(iso, v)) : t.vs.map(v => localOf(hpApply(anchor.gH, fxC(v))));
+      tilesKey = key;
+    }
+    ctx.strokeStyle = COL.tile; ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    for (const t of tiles) { const ds = t.lc.map(disp); for (let k = 0; k < 8; k++) segTo(ds[k], ds[(k + 1) % 8]); }
+    ctx.stroke();
+
+    trials.forEach((t, i) => {
+      const last = i === trials.length - 1;
+      ensureLocal(t);
+      const ds = t.pts.map(p => disp(p.lc));
+      ctx.strokeStyle = COL.walk; ctx.lineWidth = last ? 1.4 : 0.8; ctx.globalAlpha = last ? 0.9 : 0.3;
+      ctx.beginPath();
+      for (let j = 0; j < t.shown; j++) segTo(ds[j], ds[j + 1]);
+      let head = null;
+      if (t.shown < STEPS && t.partial > 0) {
+        const z1 = ds[t.shown], z2 = ds[t.shown + 1], T = translateFromOrigin(z1), u = apply(inverse(T), z2), r = Math.sqrt(abs2(u));
+        if (r > 1e-15) {
+          const s = Math.tanh(t.partial * atanhC(r)) / r;
+          head = apply(T, [u[0] * s, u[1] * s]);
+          segTo(z1, head);
+        }
+      }
+      ctx.stroke();
+      ctx.fillStyle = COL.walk; ctx.globalAlpha = last ? 1 : 0.4;
+      const dot = z => { const [x, y] = toScreen(z); if (onScreen(x, y)) { ctx.beginPath(); ctx.arc(x, y, 1 + 3 * Math.max(0, 1 - abs2(z)), 0, TAU); ctx.fill(); } };
+      for (let j = 1; j <= t.shown; j++) dot(ds[j]);
+      if (head) { const [x, y] = toScreen(head); ctx.beginPath(); ctx.arc(x, y, 5, 0, TAU); ctx.fill(); }
+      ctx.globalAlpha = 1;
+    });
+
+    const [px, py] = toScreen(disp(localOf(Pw)));
+    if (onScreen(px, py)) {
+      ctx.beginPath(); ctx.arc(px, py, 4.5, 0, TAU); ctx.fillStyle = COL.disc; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = COL.ink; ctx.stroke();
+    }
+    ctx.restore();
+    ctx.beginPath(); ctx.arc(dcx, dcy, RAD, 0, TAU); ctx.lineWidth = 1.5; ctx.strokeStyle = COL.rim; ctx.stroke();
+  }
+  function resize() {
+    const r = canvas.getBoundingClientRect();
+    dpr = window.devicePixelRatio || 1; W = r.width; H = r.height;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    RAD = Math.min(W, H) / 2 - 4; dcx = W / 2; dcy = H / 2;
+    draw();
+  }
+
+  // ---------------------------------------------------------------------
+  // Interaction: drag to move by an isometry, double-click to return to v0
+  // ---------------------------------------------------------------------
+  let drag = null;
+  const local = e => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  canvas.addEventListener('pointerdown', e => {
+    if (animating) return;
+    const [x, y] = local(e);
+    if ((x - dcx) ** 2 + (y - dcy) ** 2 > RAD * RAD) return;
+    drag = { last: toDisc(x, y) };
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const z = toDisc(...local(e));
+    if (abs2(sub(z, drag.last)) < 1e-14) return;
+    vd = compose(translationAlong(drag.last, z), vd);
+    drag.last = z; viewMoved(); draw();
+  });
+  const end = () => { drag = null; };
+  canvas.addEventListener('pointerup', end);
+  canvas.addEventListener('pointercancel', end);
+  canvas.addEventListener('dblclick', () => { if (!animating) { setViewHP(defaultView()); draw(); } });
+
+  // ---------------------------------------------------------------------
+  // Animated walk: the view reaches the i-th vertex at time i seconds, then returns
+  // ---------------------------------------------------------------------
+  const ease = s => s < 0.5 ? 2 * s * s : 1 - Math.pow(-2 * s + 2, 2) / 2;
+  function animateTo(target, dur, onFrame) {
+    return new Promise(resolve => {
+      const V0 = viewHP(), delta = hpCompose(target, hpInverse(V0));
+      const q = hpApply(delta, [0n, 0n]), dist = makePoint(q).rho;
+      const qdir = dist < 1e-12 ? [ONE, 0n] : hpNormalize(q);
+      const rot = hpCompose(hpInverse(hpTranslate(q)), delta);
+      const phi = wrap(2 * Math.atan2(toNum(rot.a[1]), toNum(rot.a[0])));
+      const t0 = performance.now();
+      function step(now) {
+        const s = Math.min(1, (now - t0) / dur), e = ease(s);
+        if (s >= 1) setViewHP(target);
+        else setViewHP(hpCompose(hpCompose(hpTranslate(cscale(qdir, tanhFx(e * dist / 2))), hpRot(e * phi)), V0));
+        if (onFrame) onFrame(e);
+        draw();
+        s < 1 ? requestAnimationFrame(step) : resolve();
+      }
+      requestAnimationFrame(step);
+    });
+  }
+  // the view centered at world point w, reached from the current view by a pure translation
+  const centeredAt = w => { const V = viewHP(); return hpCompose(hpTranslate(cneg(hpApply(V, w))), V); };
+  let animating = false;
+  const btn = document.getElementById('rw-one');
+  btn.onclick = async () => {
+    if (animating) return;
+    animating = true; btn.disabled = true; drag = null;
+    const t = walkOnce();
+    t.shown = 0;
+    if (makePoint(hpApply(viewHP(), Pw)).rho > 1e-9) await animateTo(centeredAt(Pw), 700);
+    for (let i = 1; i <= STEPS; i++) {
+      await animateTo(centeredAt(t.pts[i].w), STEP_MS, e => { t.partial = e; });
+      t.shown = i; t.partial = 0;
+    }
+    draw();
+    await new Promise(r => setTimeout(r, 400));
+    await animateTo(defaultView(), 1800);
+    animating = false; btn.disabled = false;
+  };
+
+  setViewHP(defaultView());
+  new ResizeObserver(resize).observe(canvas);
+})();
+</script>
 </body>
 </html>
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
