@@ -224,10 +224,10 @@
     <div class="section" id="stage3" hidden>
       <h2>Stage 3: sorting the red points</h2>
       <p class="note">A″ is the set of red points, numbered by distance from the original center. Point 1 is the white anchor. Each point is sorted into an urn.</p>
-      <p class="note">With radius r &gt; 0, each halfspace H is replaced by H′ = H minus the r-neighborhood of its complement: the part of H at distance at least r from its bounding geodesic.</p>
+      <p class="note">Region for a point P (the white point, or the gray point): draw the two geodesics L1, L2 through P at distance D from the current point O, and the curves L1′, L2′ at distance R beyond them. Take the part of the plane they enclose with O and P, remove the ball of radius D + R about O (which just touches L1′ and L2′), and call the piece away from P X. The region H is the complement of X, minus that ball of radius D + R. If P is within D of O, L1 and L2 become the single geodesic perpendicular to OP at distance D.</p>
       <div class="params">
         <label class="f">Distance D<input type="number" id="D3" value="1" min="0.01" max="200" step="0.5"></label>
-        <label class="f">Radius r<input type="number" id="r3" value="0" min="0" max="200" step="0.5"></label>
+        <label class="f">Radius R<input type="number" id="r3" value="0.5" min="0" max="200" step="0.5"></label>
       </div>
       <div class="buttons">
         <button class="primary" id="start3">Start</button>
@@ -661,7 +661,7 @@
       if (j === i) return { self: true, rho: 0, phi: 0, z: null, zd: [0, 0] };
       if (Fd && pj.rho < 17) {
         const z = apply(Fd, pj.zd);
-        return { rho: 2 * atanhC(Math.sqrt(abs2(z))), phi: Math.atan2(z[1], z[0]), z: null, zd: z };
+        return { rho: 2 * atanhC(Math.sqrt(abs2(z))), phi: Math.atan2(z[1], z[0]), z: null, zd: z, F, w: pj.w };
       }
       if (reuse) return { rho: pdist(pi, pj), phi: Math.atan2(pj.lc[1], pj.lc[0]), z: null, zd: pj.lc, F, w: pj.w };
       const z = hpApply(F, pj.w), zd = toNumC(z);
@@ -727,6 +727,126 @@
     ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
   }
   const hsLabel = (n, h) => h.r > 0 ? `H${n}\u2032` : `H${n}`;
+
+  // =====================================================================
+  // Stage 3 regions. Base point O (the center of frame F) and target P.
+  // L1, L2: the geodesics through P at distance D from O. L1′, L2′: their equidistant curves at
+  // distance R, on the far side from O. Rg: the region of L1′ ∪ L2′ containing O and P.
+  // The closed ball of radius D + R about O touches L1′ and L2′ (at the feet of the perpendiculars
+  // from O) and cuts Rg in two; X is the piece away from P: points of Rg farther than D + R from O
+  // whose angle at O from the direction of P exceeds beta, cos beta = tanh D / tanh d(O, P).
+  // The region H used by the algorithm is the complement of X, minus the ball of radius D + R about O.
+  // If d(O, P) <= D the two geodesics merge into the one perpendicular to OP at distance D.
+  // In the frame of O: sinh(signed distance to L1 or L2) =
+  //   sinh D [sinh(rho - rhoP)/sinh rhoP - sinh(rho) coth(rhoP)(1 - cos t)] ± sinh(rho) cosh(D) sin(beta) sin(t),
+  // with t the angle at O between x and P, computed exactly.
+  // =====================================================================
+  function makeX(F, fdP, D, R, up) {
+    const usable = fdP && !fdP.self && fdP.rho > 1e-12;
+    const rhoP = usable ? fdP.rho : 0;
+    const e = usable ? fdDir(fdP) : hpUnit(up), phiP = usable ? fdP.phi : up;
+    const base = { F, D, R, e, ed: toNumC(e), phiP, rhoP, shR: Math.sinh(R), id: Math.random() };
+    if (rhoP <= D + 1e-12) return { ...base, flat: true, h: makeHS(F, e, phiP, D, R) };
+    const omcB = Math.sinh(rhoP - D) / (Math.sinh(rhoP) * Math.cosh(D));
+    const sinB = Math.sqrt(Math.max(0, omcB * (2 - omcB)));
+    return { ...base, flat: false, omcB, sinB, beta: Math.atan2(sinB, 1 - omcB),
+      shD: Math.sinh(D), chD: Math.cosh(D), shP: Math.sinh(rhoP), cothP: 1 / Math.tanh(rhoP) };
+  }
+  function relAngle(fd, X) {               // sin t, cos t, 1 - cos t for the angle t at O between x and P
+    let s, c;
+    const z = fdZ(fd);
+    if (z) {
+      const n = Math.sqrt(toNum(cabs2(z))), e = X.e;
+      s = toNum((z[1] * e[0] - z[0] * e[1]) >> P) / n;
+      c = toNum((z[0] * e[0] + z[1] * e[1]) >> P) / n;
+    } else {
+      const n = Math.sqrt(abs2(fd.zd));
+      s = (fd.zd[1] * X.ed[0] - fd.zd[0] * X.ed[1]) / n;
+      c = (fd.zd[0] * X.ed[0] + fd.zd[1] * X.ed[1]) / n;
+    }
+    return { s, c, omc: c > 0 ? s * s / (1 + c) : 1 - c };
+  }
+  function inX(fd, X) {
+    if (fd.self || fd.rho <= X.D + X.R) return false;           // inside the closed ball
+    if (X.flat) return !memb(fd, X.h);                          // near side of the single L′
+    const a = relAngle(fd, X);
+    if (a.omc <= X.omcB) return false;                          // the piece on P's side
+    const rx = fd.rho, shx = Math.sinh(rx);
+    const A = X.shD * (Math.sinh(rx - X.rhoP) / X.shP - shx * X.cothP * a.omc);
+    const Bt = Math.abs(shx * X.chD * X.sinB * a.s);
+    return A + Bt < X.shR;                                      // near side of both L1′ and L2′
+  }
+  // H = complement of X, minus the closed ball of radius D + R about O
+  const outH = (fd, X) => fd.self || fd.rho <= X.D + X.R || inX(fd, X);
+  // the same test in doubles, for shading the picture
+  function inXd(z, X) {
+    const r = Math.sqrt(abs2(z));
+    if (r >= 1) return false;
+    const rx = 2 * Math.atanh(r);
+    if (rx <= X.D + X.R) return false;
+    const chi = Math.atan2(z[1], z[0]);
+    if (X.flat) {
+      const s = Math.sin(wrap(chi - X.phiP) / 2);
+      return Math.sinh(rx - X.D) - 2 * Math.sinh(rx) * Math.cosh(X.D) * s * s < X.shR;
+    }
+    const t = wrap(chi - X.phiP), omc = 1 - Math.cos(t);
+    if (omc <= X.omcB) return false;
+    const shx = Math.sinh(rx);
+    const A = X.shD * (Math.sinh(rx - X.rhoP) / X.shP - shx * X.cothP * omc);
+    return A + Math.abs(shx * X.chD * X.sinB * Math.sin(t)) < X.shR;
+  }
+  const mask = document.createElement('canvas'), mctx = mask.getContext('2d');
+  function screenToDiscRaw(x, y) {
+    if (model === 'disc') return [(x - dcx) / RAD, (dcy - y) / RAD];
+    if (y >= axisY) return null;
+    return uncayley([(x - ucx) / SC, (axisY - y) / SC]);
+  }
+  function hexRGB(c) { const m = /^#?([0-9a-f]{6})$/i.exec(c.trim()); const v = m ? parseInt(m[1], 16) : 0x888888; return [v >> 16, (v >> 8) & 255, v & 255]; }
+  function paintX(X, color, label) {
+    if (X.D + X.R > 30) return;
+    const M = isoFromHP(hpCompose(viewHP(), hpInverse(X.F)));
+    if (!M) return;
+    const Minv = inverse(M);
+    // shaded region, sampled on a 3px grid and smoothed
+    const step = 3, gw = Math.ceil(W / step), gh = Math.ceil(H / step);
+    const key = `${viewVer}|${W}|${H}|${model}|${color}`;
+    if (X.maskKey !== key) {
+      const img = new ImageData(gw, gh), [r, g, b] = hexRGB(color), data = img.data, tR2 = Math.tanh((X.D + X.R) / 2) ** 2;
+      for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) {
+        const zd = screenToDiscRaw((i + 0.5) * step, (j + 0.5) * step);
+        if (!zd || abs2(zd) >= 1) continue;
+        const zl = apply(Minv, zd);
+        if (abs2(zl) > tR2 && !inXd(zl, X)) { const k = 4 * (j * gw + i); data[k] = r; data[k + 1] = g; data[k + 2] = b; data[k + 3] = 70; }
+      }
+      X.mask = img; X.maskKey = key;
+    }
+    mask.width = gw; mask.height = gh;
+    mctx.putImageData(X.mask, 0, 0);
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(mask, 0, 0, gw * step, gh * step);
+    ctx.restore();
+    // construction curves
+    const hyper = (psi, off) => {
+      const Mw = compose(compose(M, rotation(psi)), translateFromOrigin([Math.tanh(X.D / 2), 0]));
+      const t = Math.tanh(off / 2), Tup = translateFromOrigin([0, Math.tanh(1)]), p0 = [t, 0];
+      return [apply(Tup, p0), p0, apply(inverse(Tup), p0)].map(p => apply(Mw, p));
+    };
+    const psis = X.flat ? [X.phiP] : [X.phiP + X.beta, X.phiP - X.beta];
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+    for (const psi of psis) strokeThrough(hyper(psi, 0));                    // L1, L2
+    ctx.setLineDash([1.5, 3.5]);
+    const tb = Math.tanh((X.D + X.R) / 2);
+    strokeThrough([0, TAU / 3, 2 * TAU / 3].map(a => apply(M, [tb * Math.cos(a), tb * Math.sin(a)])));   // the ball
+    ctx.setLineDash([]); ctx.lineWidth = 2;
+    for (const psi of psis) strokeThrough(hyper(psi, X.R));                  // L1′, L2′
+    if (label) {
+      const tl = Math.tanh((X.D + X.R + 0.6) / 2), a = X.phiP;
+      const [lx, ly] = toScreen(apply(M, [tl * Math.cos(a), tl * Math.sin(a)]));
+      if (onScreen(lx, ly)) drawLabel(label, lx, ly);
+    }
+  }
 
   // =====================================================================
   // Convex hull: exact Euclidean hull of the Klein-model coordinates
@@ -885,8 +1005,8 @@
         h1 = s3.rec[focusPt].H1;
         h2 = hsShow === 'h12' ? s3.rec[focusPt].H2 : null;
       }
-      if (h2) paintMod(h2, css('--hs2'), 0.2, hsLabel(2, h2));
-      if (h1) paintMod(h1, css('--hs1'), 0.2, hsLabel(1, h1));
+      if (h2) paintX(h2, css('--hs2'), 'H2');
+      if (h1) paintX(h1, css('--hs1'), 'H1');
       drawLineage();
     }
     drawPoints();
@@ -1637,35 +1757,34 @@
       lastPi = pi;
 
       const fr = frameData(pi, Fi), fds = fr.list;
-      const H1 = pi === s3.white ? makeHS(fr.F, hpUnit(up), up, D, rr)
-        : makeHS(fr.F, fdDir(fds[s3.white]), fds[s3.white].phi, D, rr);
+      const H1 = makeX(fr.F, pi === s3.white ? null : fds[s3.white], D, rr, up);
       s3.H1 = H1;
       s3.rec[pi] = { H1, H2: null };
-      if (!token.skip) { showBanner('', '', `${tag}: ${rr > 0 ? 'modified halfspace H1′' : 'halfspace H1'} toward the white point`); draw(); }
+      if (!token.skip) { showBanner('', '', `${tag}: region H1 for the white point`); draw(); }
       await wait(500, token);
 
-      const out1 = L.filter(j => j !== pi && !memb(fds[j], H1));
+      const out1 = L.filter(j => j !== pi && outH(fds[j], H1));
       const nearest = arr => arr.reduce((b, j) => fds[j].rho < fds[b].rho ? j : b, arr[0]);
       let kind, msg;
       if (!out1.length) {
         kind = 'yay'; msg = 'Nice';
-        const members = points.map((p, j) => j).filter(j => !memb(fds[j], H1));
+        const members = points.map((p, j) => j).filter(j => j === pi || outH(fds[j], H1));
         members.forEach(j => s3.cover.add(j));
         s3.regions.push({ center: pi, members });
         moveTo(pi, 'G');
       } else {
         const g1 = nearest(out1);
         s3.tempGray.add(g1);
-        if (!token.skip) { showBanner('hold', 'Hold on...', `${tag}: ${out1.length} red point${out1.length > 1 ? 's' : ''} outside ${hsLabel(1, H1)}`); draw(true); }
+        if (!token.skip) { showBanner('hold', 'Hold on...', `${tag}: ${out1.length} red point${out1.length > 1 ? 's' : ''} outside H1`); draw(true); }
         await wait(300, token);
-        const H2 = makeHS(fr.F, fdDir(fds[g1]), fds[g1].phi, D, rr);
+        const H2 = makeX(fr.F, fds[g1], D, rr, up);
         s3.H2 = H2; s3.rec[pi].H2 = H2;
         if (!token.skip) draw();
         await wait(500, token);
-        const out12 = L.filter(j => j !== pi && !memb(fds[j], H1) && !memb(fds[j], H2));
+        const out12 = L.filter(j => j !== pi && outH(fds[j], H1) && outH(fds[j], H2));
         if (!out12.length) {
           kind = 'yay'; msg = 'Phew!';
-          const members = points.map((p, j) => j).filter(j => !memb(fds[j], H1) && !memb(fds[j], H2));
+          const members = points.map((p, j) => j).filter(j => j === pi || (outH(fds[j], H1) && outH(fds[j], H2)));
           members.forEach(j => s3.cover.add(j));
           s3.regions.push({ center: pi, members });
           moveTo(pi, 'G');
@@ -1683,7 +1802,7 @@
       if (token.cancelled) break;
       renderUrns();
       if (!token.skip) {
-        showBanner(kind, msg, tag + (D > 30 || rr > 30 ? ' (halfspaces too small to see at this D or r)' : ''));
+        showBanner(kind, msg, tag + (D + rr > 30 ? ' (regions too small to see at this D + R)' : ''));
         draw(true);
         await psleep(token, 300);
         await psleep(token, 700);
