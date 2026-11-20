@@ -45,16 +45,25 @@
           <li>something about counting with Ritwik Chakraborty and Biswajit Nag.</li>
         </ul>
       </div>
--->
+-->   <li>
+        <p>
+          <span onclick="GenusCountClick()">Counting elements and conjugacy classes of fixed genus in hyperbolic groups</span><br>
+          with <a href="https://sites.google.com/view/ritwikchakraborty/">Ritwik Chakraborty</a> and Biswajit Nag<br>
+             <a href="https://arxiv.org/abs/2611.25330"><span>arXiv:2611.25330</span></a><span> (2026)</span>
+        </p>
+      </li>
+      <div id="GenusCount" style="display: none;">
+        <ul><li><p>We give an asymptotic count of elements of given genus in hyperbolic groups; more precise asymptotics are given for free groups. The main ingredient for the theorem is an combinatorial optimization for fatgraphs (or ribbon graphs) in hyperbolic groups. </p></li></ul>
+      </div>
 
       <li>
         <p>
-          <span onclick="HigherHoroClick()">Random quotients of hyperbolic spaces with respect to WPD actions and linear connectivity of the boundary</span><br>
+          <span onclick="WPDLinearClick()">Random quotients of hyperbolic spaces with respect to WPD actions and linear connectivity of the boundary</span><br>
           with <a href="https://henrytalbott.com">Henry Talbott</a><br>
-             <a href="https://inhyeokchoi48.github.io/files/random_quotient.pdf"><span>preprint</span></a><span> (2026)</span>
+             <a href="https://arxiv.org/abs/2610.21141"><span>arXiv:2610.21141</span></a><span> (2026)</span>
         </p>
       </li>
-      <div id="HigherHoro" style="display: none;">
+      <div id="WPDLinear" style="display: none;">
         <ul><li><p>This is about random quotients of Gromov hyperbolic spaces. Acylindrically hyperbolic groups and hierarchically hyperbolic groups admit WPD actions on Gromov hyperbolic spaces, and we describe the topology of the quotient of the space after quotienting by a random element of the group. The upshot is that the quotient space retains hyperbolicity but cannot be "too hyperbolic"; it is not a quasi-tree.</p></li></ul>
       </div>
 
@@ -426,9 +435,7 @@
         <h5>Upcoming</h5>
         <ul>
             <li>2026.12.08. Random subgraphs of the mapping class group. CUNY Geometry & Topology Seminar. CUNY Graduate Center, NYC, NY, USA.</li>
-            <li>2026.12.01. TBA. IAS/PU Dynamics seminar. Institute for Advanced Study, Princeton, NJ, USA.</li>
-            <li>2026.11.17. My journey in topology that started from the Hyeongseol hall. Korea Science Academy, Busan, South Korea</li>
-            <li>2026.11.05. Counting objects with hyperbolicity. HCMC of KIAS, Seoul, South Korea.</li>
+            <li>2026.12.01. Counting from the north-south dynamics. IAS/PU Dynamics seminar. Institute for Advanced Study, Princeton, NJ, USA.</li>
         </ul>
       </li>
 
@@ -447,6 +454,8 @@
       <div id="talk2026" style="display: none;">
         <hr>
         <ul>
+            <li>2026.11.17. My journey in topology that started from the Hyeongseol hall. Korea Science Academy, Busan, South Korea</li>
+            <li>2026.11.05. Counting objects with hyperbolicity. HCMC of KIAS, Seoul, South Korea.</li>
             <li>2026.10.31. North-south dynamics of the mapping class group. 2026 Korean Mathematical Society Annual meeting, Gwangju, South Korea</li>
             <li>2026.10.16. Invariant measures for subgroups of the mapping class group. Thematic Programme on Surface Group Representation and Analytic Group Theory. Lodha Mathematical Sciences Institute, Mumbai, India.</li>
             <li>2026.10.08. Animations on hyperbolicity. Thematic Programme on Surface Group Representation and Analytic Group Theory. Lodha Mathematical Sciences Institute, Mumbai, India.</li>
@@ -590,6 +599,8 @@
     x.style.display = (x.style.display === "none") ? "block" : "none";
   }
   function UnfinishedClick()    { toggle("Unfinished"); }
+  function GenusCountClick()    { toggle("GenusCount"); }
+  function WPDLinearClick()    { toggle("WPDLinear"); }
   function NonAriClick()    { toggle("NonAri"); }
   function HigherHoroClick()    { toggle("HigherHoro"); }
   function MyrbergClick()       { toggle("Myrberg"); }
